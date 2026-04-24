@@ -6,7 +6,8 @@
  * Layout: Asymmetric, left-anchored, instrument-panel density
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import BlackholeGL from "@/components/BlackholeGL";
 
 // ── Scroll-reveal hook ──────────────────────────────────────────────────────
 function useReveal() {
@@ -120,22 +121,7 @@ function StatBadge({ value, unit, label }: { value: string; unit: string; label:
 }
 
 // ── Live Demo Section ────────────────────────────────────────────────────────
-const SIM_URL = "https://4001-i1iwwavvjj8ggvg0u5mn9-f49eec36.us1.manus.computer";
-
 function LiveDemo() {
-  const [launched, setLaunched] = useState(false);
-  const [fullscreen, setFullscreen] = useState(false);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  // Keyboard shortcut: Escape to exit fullscreen
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && fullscreen) setFullscreen(false);
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [fullscreen]);
-
   return (
     <section id="demo" className="py-0">
       {/* Section header */}
@@ -150,138 +136,42 @@ function LiveDemo() {
               Run the Simulation
             </h2>
             <p className="text-white/45 text-sm leading-relaxed max-w-xl reveal reveal-delay-2">
-              The full WebGPU ray tracer runs live below — drag to orbit the camera, scroll to zoom,
-              and adjust every physics parameter in real time. The renderer automatically falls back
-              to WebGL2 if your browser does not yet support WebGPU.
+              The full WebGL2 ray tracer runs live below — drag to orbit the camera, scroll to zoom,
+              and adjust every physics parameter in real time via the left panel.
             </p>
           </div>
-          <div className="flex items-center gap-3 reveal reveal-delay-3 shrink-0">
-            <div className="flex items-center gap-2 font-mono text-[9px] tracking-widest uppercase text-white/25">
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              Live · WebGPU / WebGL2
+          <div className="flex items-center gap-2 reveal reveal-delay-3 shrink-0">
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <div className="font-mono text-[9px] tracking-widest uppercase text-white/25">
+              Live · WebGL2
             </div>
-            {launched && (
-              <button
-                onClick={() => setFullscreen(true)}
-                className="flex items-center gap-2 px-3 py-1.5 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-400/60 transition-all duration-200 font-mono text-[10px] tracking-widest uppercase"
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
-                </svg>
-                Fullscreen
-              </button>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Embed container */}
-      <div className="relative w-full border-y border-cyan-500/15" style={{ height: "80vh", minHeight: "520px", background: "#000005" }}>
-        {/* Corner brackets */}
-        <div className="absolute top-4 left-4 w-6 h-6 border-t border-l border-cyan-500/30 z-10 pointer-events-none" />
-        <div className="absolute top-4 right-4 w-6 h-6 border-t border-r border-cyan-500/30 z-10 pointer-events-none" />
-        <div className="absolute bottom-4 left-4 w-6 h-6 border-b border-l border-cyan-500/30 z-10 pointer-events-none" />
-        <div className="absolute bottom-4 right-4 w-6 h-6 border-b border-r border-cyan-500/30 z-10 pointer-events-none" />
-
-        {!launched ? (
-          /* Launch screen */
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-8 z-10">
-            <img
-              src="/manus-storage/showcase_hero_43645c3d.png"
-              alt="Black hole preview"
-              className="absolute inset-0 w-full h-full object-cover opacity-30"
-            />
-            <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, rgba(0,0,5,0.3) 0%, rgba(0,0,5,0.85) 70%)" }} />
-            <div className="relative z-10 flex flex-col items-center gap-6 text-center px-4">
-              <div className="font-mono text-[9px] tracking-[0.3em] uppercase text-cyan-500/60">
-                WebGPU · WebGL2 Fallback
-              </div>
-              <div className="text-white font-bold text-2xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                Kerr Black Hole Simulation
-              </div>
-              <p className="text-white/40 text-sm max-w-sm leading-relaxed">
-                Click to launch the real-time ray tracer. Drag to orbit · scroll to zoom · adjust parameters in the left panel.
-              </p>
-              <button
-                onClick={() => setLaunched(true)}
-                className="flex items-center gap-3 px-8 py-3 bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/25 hover:border-cyan-400/70 transition-all duration-300 font-mono text-xs tracking-widest uppercase group"
-              >
-                <svg
-                  width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
-                  className="group-hover:scale-110 transition-transform"
-                >
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-                Launch Simulation
-              </button>
-              <div className="text-white/20 text-[10px] font-mono">
-                Best experienced in Chrome 113+ or Edge 113+ for WebGPU support
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Live iframe */
-          <iframe
-            ref={iframeRef}
-            src={SIM_URL}
-            className="w-full h-full border-0"
-            title="Gargantua — Kerr Black Hole WebGPU Simulation"
-            allow="accelerometer; camera; fullscreen; gyroscope; xr-spatial-tracking"
-            style={{ display: "block" }}
-          />
-        )}
+      {/* Native WebGL2 simulation */}
+      <div className="border-y border-cyan-500/15">
+        <BlackholeGL />
       </div>
 
       {/* Controls hint strip */}
-      {launched && (
-        <div className="border-b border-cyan-500/10 bg-black/60">
-          <div className="container py-3 flex flex-wrap items-center gap-6">
-            {[
-              ["Drag", "Orbit camera"],
-              ["Scroll", "Zoom in / out"],
-              ["Left panel", "Physics parameters"],
-              ["Right panel", "Physics notes"],
-              ["⏸", "Pause / resume"],
-              ["↺", "Reset defaults"],
-            ].map(([key, desc]) => (
-              <div key={key} className="flex items-center gap-2 text-[10px]">
-                <span className="font-mono text-cyan-400/50 border border-cyan-500/20 px-1.5 py-0.5">{key}</span>
-                <span className="text-white/30">{desc}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Fullscreen overlay */}
-      {fullscreen && (
-        <div className="fixed inset-0 z-[100] bg-black flex flex-col">
-          {/* Fullscreen top bar */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-cyan-500/15 bg-black/80 backdrop-blur-sm shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-cyan-400/70">
-                GARGANTUA · Live Simulation
-              </span>
+      <div className="border-b border-cyan-500/10 bg-black/60">
+        <div className="container py-3 flex flex-wrap items-center gap-6">
+          {[
+            ["Drag", "Orbit camera"],
+            ["Scroll", "Zoom in / out"],
+            ["Controls panel", "Toggle left panel"],
+            ["⏸ Pause", "Pause / resume"],
+            ["↺ Reset", "Reset defaults"],
+            ["⤢ Full", "Fullscreen mode"],
+          ].map(([key, desc]) => (
+            <div key={key} className="flex items-center gap-2 text-[10px]">
+              <span className="font-mono text-cyan-400/50 border border-cyan-500/20 px-1.5 py-0.5">{key}</span>
+              <span className="text-white/30">{desc}</span>
             </div>
-            <button
-              onClick={() => setFullscreen(false)}
-              className="flex items-center gap-2 px-3 py-1.5 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 transition-all font-mono text-[10px] tracking-widest uppercase"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
-              </svg>
-              Exit · Esc
-            </button>
-          </div>
-          <iframe
-            src={SIM_URL}
-            className="flex-1 w-full border-0"
-            title="Gargantua — Fullscreen"
-            allow="accelerometer; camera; fullscreen; gyroscope; xr-spatial-tracking"
-          />
+          ))}
         </div>
-      )}
+      </div>
     </section>
   );
 }
