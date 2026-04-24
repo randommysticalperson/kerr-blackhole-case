@@ -6,7 +6,7 @@
  * Layout: Asymmetric, left-anchored, instrument-panel density
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // ── Scroll-reveal hook ──────────────────────────────────────────────────────
 function useReveal() {
@@ -15,9 +15,7 @@ function useReveal() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add("visible");
-          }
+          if (e.isIntersecting) e.target.classList.add("visible");
         });
       },
       { threshold: 0.12 }
@@ -38,8 +36,8 @@ function ReticleCanvas() {
     let raf: number;
     let t = 0;
     const draw = () => {
-      const w = canvas.width = canvas.offsetWidth;
-      const h = canvas.height = canvas.offsetHeight;
+      const w = (canvas.width = canvas.offsetWidth);
+      const h = (canvas.height = canvas.offsetHeight);
       ctx.clearRect(0, 0, w, h);
       const spacing = 80;
       ctx.strokeStyle = `rgba(0,229,255,${0.04 + 0.015 * Math.sin(t * 0.4)})`;
@@ -50,22 +48,20 @@ function ReticleCanvas() {
       for (let y = 0; y < h; y += spacing) {
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
       }
-      // Crosshair at center
       const cx = w / 2, cy = h / 2;
       ctx.strokeStyle = `rgba(0,229,255,${0.12 + 0.04 * Math.sin(t * 0.5)})`;
       ctx.lineWidth = 0.75;
       ctx.beginPath(); ctx.moveTo(cx - 40, cy); ctx.lineTo(cx + 40, cy); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(cx, cy - 40); ctx.lineTo(cx, cy + 40); ctx.stroke();
-      // Corner brackets
       const bSize = 20, bOff = 32;
-      ctx.strokeStyle = `rgba(0,229,255,${0.18})`;
+      ctx.strokeStyle = `rgba(0,229,255,0.18)`;
       ctx.lineWidth = 1;
-      [[bOff, bOff, 1, 1], [w - bOff, bOff, -1, 1], [bOff, h - bOff, 1, -1], [w - bOff, h - bOff, -1, -1]].forEach(
+      ([[bOff, bOff, 1, 1], [w - bOff, bOff, -1, 1], [bOff, h - bOff, 1, -1], [w - bOff, h - bOff, -1, -1]] as [number, number, number, number][]).forEach(
         ([bx, by, sx, sy]) => {
           ctx.beginPath();
-          ctx.moveTo(bx as number, (by as number) + (sy as number) * bSize);
-          ctx.lineTo(bx as number, by as number);
-          ctx.lineTo((bx as number) + (sx as number) * bSize, by as number);
+          ctx.moveTo(bx, by + sy * bSize);
+          ctx.lineTo(bx, by);
+          ctx.lineTo(bx + sx * bSize, by);
           ctx.stroke();
         }
       );
@@ -80,32 +76,19 @@ function ReticleCanvas() {
 
 // ── Feature card ────────────────────────────────────────────────────────────
 function FeatureCard({
-  label,
-  title,
-  desc,
-  accent = "cyan",
-  delay = 0,
+  label, title, desc, accent = "cyan", delay = 0,
 }: {
-  label: string;
-  title: string;
-  desc: string;
-  accent?: "cyan" | "amber";
-  delay?: number;
+  label: string; title: string; desc: string; accent?: "cyan" | "amber"; delay?: number;
 }) {
   const borderColor = accent === "cyan" ? "border-cyan-500/30 hover:border-cyan-400/60" : "border-amber-500/30 hover:border-amber-400/60";
   const labelColor = accent === "cyan" ? "text-cyan-400/60" : "text-amber-400/60";
   const titleColor = accent === "cyan" ? "text-cyan-100" : "text-amber-100";
   const glowColor = accent === "cyan" ? "hover:bg-cyan-500/[0.04]" : "hover:bg-amber-500/[0.04]";
   const leftBorder = accent === "cyan" ? "border-l-cyan-500/50 hover:border-l-cyan-400" : "border-l-amber-500/50 hover:border-l-amber-400";
-
   return (
-    <div
-      className={`reveal reveal-delay-${delay} group p-5 border border-l-2 ${borderColor} ${leftBorder} ${glowColor} transition-all duration-300 bg-white/[0.02]`}
-    >
+    <div className={`reveal reveal-delay-${delay} group p-5 border border-l-2 ${borderColor} ${leftBorder} ${glowColor} transition-all duration-300 bg-white/[0.02]`}>
       <div className={`font-mono text-[9px] tracking-[0.3em] uppercase mb-2 ${labelColor}`}>{label}</div>
-      <div className={`font-semibold text-sm mb-2 ${titleColor}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-        {title}
-      </div>
+      <div className={`font-semibold text-sm mb-2 ${titleColor}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</div>
       <div className="text-white/45 text-xs leading-relaxed">{desc}</div>
     </div>
   );
@@ -136,6 +119,173 @@ function StatBadge({ value, unit, label }: { value: string; unit: string; label:
   );
 }
 
+// ── Live Demo Section ────────────────────────────────────────────────────────
+const SIM_URL = "https://4001-i1iwwavvjj8ggvg0u5mn9-f49eec36.us1.manus.computer";
+
+function LiveDemo() {
+  const [launched, setLaunched] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Keyboard shortcut: Escape to exit fullscreen
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && fullscreen) setFullscreen(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [fullscreen]);
+
+  return (
+    <section id="demo" className="py-0">
+      {/* Section header */}
+      <div className="container py-16">
+        <div className="section-label mb-4 reveal">Interactive Demo</div>
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+          <div>
+            <h2
+              className="text-3xl font-bold text-white mb-3 reveal reveal-delay-1"
+              style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "-0.02em" }}
+            >
+              Run the Simulation
+            </h2>
+            <p className="text-white/45 text-sm leading-relaxed max-w-xl reveal reveal-delay-2">
+              The full WebGPU ray tracer runs live below — drag to orbit the camera, scroll to zoom,
+              and adjust every physics parameter in real time. The renderer automatically falls back
+              to WebGL2 if your browser does not yet support WebGPU.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 reveal reveal-delay-3 shrink-0">
+            <div className="flex items-center gap-2 font-mono text-[9px] tracking-widest uppercase text-white/25">
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              Live · WebGPU / WebGL2
+            </div>
+            {launched && (
+              <button
+                onClick={() => setFullscreen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-400/60 transition-all duration-200 font-mono text-[10px] tracking-widest uppercase"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                </svg>
+                Fullscreen
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Embed container */}
+      <div className="relative w-full border-y border-cyan-500/15" style={{ height: "80vh", minHeight: "520px", background: "#000005" }}>
+        {/* Corner brackets */}
+        <div className="absolute top-4 left-4 w-6 h-6 border-t border-l border-cyan-500/30 z-10 pointer-events-none" />
+        <div className="absolute top-4 right-4 w-6 h-6 border-t border-r border-cyan-500/30 z-10 pointer-events-none" />
+        <div className="absolute bottom-4 left-4 w-6 h-6 border-b border-l border-cyan-500/30 z-10 pointer-events-none" />
+        <div className="absolute bottom-4 right-4 w-6 h-6 border-b border-r border-cyan-500/30 z-10 pointer-events-none" />
+
+        {!launched ? (
+          /* Launch screen */
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-8 z-10">
+            <img
+              src="/manus-storage/showcase_hero_43645c3d.png"
+              alt="Black hole preview"
+              className="absolute inset-0 w-full h-full object-cover opacity-30"
+            />
+            <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, rgba(0,0,5,0.3) 0%, rgba(0,0,5,0.85) 70%)" }} />
+            <div className="relative z-10 flex flex-col items-center gap-6 text-center px-4">
+              <div className="font-mono text-[9px] tracking-[0.3em] uppercase text-cyan-500/60">
+                WebGPU · WebGL2 Fallback
+              </div>
+              <div className="text-white font-bold text-2xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                Kerr Black Hole Simulation
+              </div>
+              <p className="text-white/40 text-sm max-w-sm leading-relaxed">
+                Click to launch the real-time ray tracer. Drag to orbit · scroll to zoom · adjust parameters in the left panel.
+              </p>
+              <button
+                onClick={() => setLaunched(true)}
+                className="flex items-center gap-3 px-8 py-3 bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/25 hover:border-cyan-400/70 transition-all duration-300 font-mono text-xs tracking-widest uppercase group"
+              >
+                <svg
+                  width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                  className="group-hover:scale-110 transition-transform"
+                >
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+                Launch Simulation
+              </button>
+              <div className="text-white/20 text-[10px] font-mono">
+                Best experienced in Chrome 113+ or Edge 113+ for WebGPU support
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Live iframe */
+          <iframe
+            ref={iframeRef}
+            src={SIM_URL}
+            className="w-full h-full border-0"
+            title="Gargantua — Kerr Black Hole WebGPU Simulation"
+            allow="accelerometer; camera; fullscreen; gyroscope; xr-spatial-tracking"
+            style={{ display: "block" }}
+          />
+        )}
+      </div>
+
+      {/* Controls hint strip */}
+      {launched && (
+        <div className="border-b border-cyan-500/10 bg-black/60">
+          <div className="container py-3 flex flex-wrap items-center gap-6">
+            {[
+              ["Drag", "Orbit camera"],
+              ["Scroll", "Zoom in / out"],
+              ["Left panel", "Physics parameters"],
+              ["Right panel", "Physics notes"],
+              ["⏸", "Pause / resume"],
+              ["↺", "Reset defaults"],
+            ].map(([key, desc]) => (
+              <div key={key} className="flex items-center gap-2 text-[10px]">
+                <span className="font-mono text-cyan-400/50 border border-cyan-500/20 px-1.5 py-0.5">{key}</span>
+                <span className="text-white/30">{desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen overlay */}
+      {fullscreen && (
+        <div className="fixed inset-0 z-[100] bg-black flex flex-col">
+          {/* Fullscreen top bar */}
+          <div className="flex items-center justify-between px-4 py-2 border-b border-cyan-500/15 bg-black/80 backdrop-blur-sm shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-cyan-400/70">
+                GARGANTUA · Live Simulation
+              </span>
+            </div>
+            <button
+              onClick={() => setFullscreen(false)}
+              className="flex items-center gap-2 px-3 py-1.5 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 transition-all font-mono text-[10px] tracking-widest uppercase"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+              </svg>
+              Exit · Esc
+            </button>
+          </div>
+          <iframe
+            src={SIM_URL}
+            className="flex-1 w-full border-0"
+            title="Gargantua — Fullscreen"
+            allow="accelerometer; camera; fullscreen; gyroscope; xr-spatial-tracking"
+          />
+        </div>
+      )}
+    </section>
+  );
+}
+
 // ── Main page ────────────────────────────────────────────────────────────────
 export default function Home() {
   useReveal();
@@ -147,11 +297,10 @@ export default function Home() {
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 border-b border-cyan-500/10 bg-black/70 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-          <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-cyan-400/70">
-            GARGANTUA
-          </span>
+          <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-cyan-400/70">GARGANTUA</span>
         </div>
         <div className="hidden md:flex items-center gap-6 font-mono text-[10px] tracking-widest uppercase text-white/30">
+          <a href="#demo" className="hover:text-cyan-400/70 transition-colors">Demo</a>
           <a href="#physics" className="hover:text-cyan-400/70 transition-colors">Physics</a>
           <a href="#features" className="hover:text-cyan-400/70 transition-colors">Features</a>
           <a href="#rendering" className="hover:text-cyan-400/70 transition-colors">Rendering</a>
@@ -159,8 +308,7 @@ export default function Home() {
         </div>
         <a
           href="https://github.com/randommysticalperson/kerr-blackhole-webgpu"
-          target="_blank"
-          rel="noopener noreferrer"
+          target="_blank" rel="noopener noreferrer"
           className="flex items-center gap-2 px-3 py-1.5 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-400/60 transition-all duration-200 font-mono text-[10px] tracking-widest uppercase"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
@@ -172,39 +320,27 @@ export default function Home() {
 
       {/* ── Hero section ── */}
       <section className="relative min-h-screen flex items-end overflow-hidden pt-16">
-        {/* Full-bleed background image */}
         <div className="absolute inset-0">
           <img
             src="/manus-storage/showcase_hero_43645c3d.png"
             alt="Kerr black hole with accretion disk"
             className="w-full h-full object-cover object-center"
           />
-          {/* Dark gradient overlay — left side for text legibility */}
           <div className="absolute inset-0" style={{
             background: "linear-gradient(105deg, rgba(0,0,5,0.92) 0%, rgba(0,0,5,0.75) 40%, rgba(0,0,5,0.2) 70%, rgba(0,0,5,0.05) 100%)"
           }} />
-          {/* Bottom fade */}
           <div className="absolute bottom-0 left-0 right-0 h-48" style={{
             background: "linear-gradient(to top, #000005 0%, transparent 100%)"
           }} />
         </div>
-
-        {/* Reticle overlay */}
         <ReticleCanvas />
-
-        {/* Grain overlay */}
         <div className="grain-overlay" />
-
-        {/* Hero text — left-anchored */}
         <div className="relative z-10 container pb-24 pt-32">
           <div className="max-w-2xl">
-            {/* Status badge */}
             <div className="flex items-center gap-3 mb-8">
               <div className="section-label">Real-time WebGPU Simulation</div>
               <div className="font-mono text-[9px] text-white/20 tracking-widest">arXiv:1502.03808</div>
             </div>
-
-            {/* Main title */}
             <h1
               className="font-bold leading-none mb-2 text-white"
               style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: "clamp(3rem, 8vw, 6rem)", letterSpacing: "-0.02em" }}
@@ -214,14 +350,11 @@ export default function Home() {
             <div className="font-mono text-xs tracking-[0.3em] text-cyan-400/60 uppercase mb-6">
               Kerr Black Hole Ray Tracer
             </div>
-
             <p className="text-white/55 text-base leading-relaxed mb-8 max-w-lg">
               A physically-based simulation of a rotating Kerr black hole running entirely in the browser.
               Null geodesic integration, relativistic Doppler beaming, and gravitational lensing —
               rendered in real time via WebGPU compute shaders.
             </p>
-
-            {/* Live parameter readout */}
             <div className="flex flex-wrap gap-4 mb-10 font-mono text-[11px]">
               <div className="flex items-center gap-2 text-white/30">
                 <span className="text-cyan-500/50">a</span>
@@ -243,33 +376,33 @@ export default function Home() {
                 <span className="text-cyan-300/70">WebGPU / WebGL2</span>
               </div>
             </div>
-
-            {/* CTA buttons */}
             <div className="flex flex-wrap gap-3">
               <a
-                href="https://github.com/randommysticalperson/kerr-blackhole-webgpu"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="#demo"
                 className="flex items-center gap-2 px-5 py-2.5 bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/25 hover:border-cyan-400/70 transition-all duration-200 font-mono text-xs tracking-widest uppercase"
               >
-                View Source
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M7 17L17 7M17 7H7M17 7v10"/>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z"/>
                 </svg>
+                Try the Demo
+              </a>
+              <a
+                href="https://github.com/randommysticalperson/kerr-blackhole-webgpu"
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 px-5 py-2.5 border border-white/15 text-white/50 hover:border-white/30 hover:text-white/70 transition-all duration-200 font-mono text-xs tracking-widest uppercase"
+              >
+                View Source
               </a>
               <a
                 href="https://arxiv.org/abs/1502.03808"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-5 py-2.5 border border-white/15 text-white/50 hover:border-white/30 hover:text-white/70 transition-all duration-200 font-mono text-xs tracking-widest uppercase"
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 px-5 py-2.5 border border-white/10 text-white/35 hover:border-white/20 hover:text-white/55 transition-all duration-200 font-mono text-xs tracking-widest uppercase"
               >
                 arXiv Paper
               </a>
             </div>
           </div>
         </div>
-
-        {/* Scroll indicator */}
         <div className="absolute bottom-8 right-8 flex flex-col items-center gap-2 text-white/20">
           <div className="font-mono text-[9px] tracking-widest uppercase">Scroll</div>
           <div className="w-px h-12 bg-gradient-to-b from-cyan-500/30 to-transparent" />
@@ -294,11 +427,15 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Live Demo ── */}
+      <LiveDemo />
+
+      <hr className="hairline" />
+
       {/* ── Physics section ── */}
       <section id="physics" className="py-24">
         <div className="container">
           <div className="grid lg:grid-cols-[1fr_420px] gap-16 items-start">
-            {/* Left: equations */}
             <div>
               <div className="section-label mb-4 reveal">Spacetime Physics</div>
               <h2
@@ -312,42 +449,15 @@ export default function Home() {
                 The Boyer-Lindquist radial coordinate is solved from Cartesian coordinates via a quartic equation,
                 enabling the full Christoffel-symbol acceleration to be evaluated per step.
               </p>
-
               <div className="space-y-0 border-t border-cyan-500/[0.07]">
-                <PhysicsRow
-                  label="Kerr Metric"
-                  eq="Σ = r² + a²cos²θ    Δ = r² − 2Mr + a²"
-                  note="Σ and Δ are the fundamental Kerr metric functions. M is mass, a is specific angular momentum (spin)."
-                />
-                <PhysicsRow
-                  label="Null Geodesic"
-                  eq="H = ½ g^μν p_μ p_ν = 0"
-                  note="Photons follow null geodesics where the Hamiltonian vanishes. Integrated via 2nd-order Runge-Kutta."
-                />
-                <PhysicsRow
-                  label="Frame Drag"
-                  eq="dragAcc = (2Ma·r / Σ²) × (φ̂ × v)"
-                  note="Lense-Thirring frame dragging couples the photon velocity to the azimuthal direction, bending paths around the spin axis."
-                />
-                <PhysicsRow
-                  label="Event Horizon"
-                  eq="r₊ = M + √(M² − a²)"
-                  note="Outer event horizon radius. For a = 0 (Schwarzschild): r₊ = 2M. For a → M (extremal Kerr): r₊ → M."
-                />
-                <PhysicsRow
-                  label="ISCO (prograde)"
-                  eq="r_ISCO = M(3 + Z₂ − √((3−Z₁)(3+Z₁+2Z₂)))"
-                  note="Innermost stable circular orbit for prograde orbits (Bardeen 1972). Sets the inner edge of the accretion disk."
-                />
-                <PhysicsRow
-                  label="Doppler Factor"
-                  eq="D = 1 / (1 − β cosθ)    I_obs = I_emit · D³"
-                  note="Relativistic Doppler beaming. The approaching disk side (D > 1) brightens dramatically; the receding side dims."
-                />
+                <PhysicsRow label="Kerr Metric" eq="Σ = r² + a²cos²θ    Δ = r² − 2Mr + a²" note="Σ and Δ are the fundamental Kerr metric functions. M is mass, a is specific angular momentum (spin)." />
+                <PhysicsRow label="Null Geodesic" eq="H = ½ g^μν p_μ p_ν = 0" note="Photons follow null geodesics where the Hamiltonian vanishes. Integrated via 2nd-order Runge-Kutta." />
+                <PhysicsRow label="Frame Drag" eq="dragAcc = (2Ma·r / Σ²) × (φ̂ × v)" note="Lense-Thirring frame dragging couples the photon velocity to the azimuthal direction, bending paths around the spin axis." />
+                <PhysicsRow label="Event Horizon" eq="r₊ = M + √(M² − a²)" note="Outer event horizon radius. For a = 0 (Schwarzschild): r₊ = 2M. For a → M (extremal Kerr): r₊ → M." />
+                <PhysicsRow label="ISCO (prograde)" eq="r_ISCO = M(3 + Z₂ − √((3−Z₁)(3+Z₁+2Z₂)))" note="Innermost stable circular orbit for prograde orbits (Bardeen 1972). Sets the inner edge of the accretion disk." />
+                <PhysicsRow label="Doppler Factor" eq="D = 1 / (1 − β cosθ)    I_obs = I_emit · D³" note="Relativistic Doppler beaming. The approaching disk side (D > 1) brightens dramatically; the receding side dims." />
               </div>
             </div>
-
-            {/* Right: lensing image */}
             <div className="lg:sticky lg:top-24 reveal reveal-delay-2">
               <div className="relative">
                 <img
@@ -356,7 +466,6 @@ export default function Home() {
                   className="w-full aspect-square object-cover"
                   style={{ filter: "brightness(0.9) contrast(1.05)" }}
                 />
-                {/* Image annotation */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
                   <div className="font-mono text-[9px] tracking-widest uppercase text-cyan-500/60 mb-1">Gravitational Lensing</div>
                   <div className="text-white/40 text-[10px] leading-relaxed">
@@ -364,7 +473,6 @@ export default function Home() {
                     Doppler asymmetry: blue-white left (approaching), amber right (receding).
                   </div>
                 </div>
-                {/* Corner bracket decoration */}
                 <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-cyan-500/40" />
                 <div className="absolute top-3 right-3 w-5 h-5 border-t border-r border-cyan-500/40" />
               </div>
@@ -389,71 +497,16 @@ export default function Home() {
             Every frame is computed from first principles. No pre-baked textures, no approximations —
             each pixel traces a photon path through curved spacetime.
           </p>
-
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <FeatureCard
-              label="Spacetime · Geodesics"
-              title="Null Geodesic Integration"
-              desc="Photon paths are integrated using RK2 through the Kerr metric. Boyer-Lindquist r is solved from Cartesian coordinates via a quartic at each step."
-              accent="cyan"
-              delay={1}
-            />
-            <FeatureCard
-              label="Spacetime · Rotation"
-              title="Frame Dragging"
-              desc="Lense-Thirring coupling bends photon trajectories around the spin axis. Controlled by the dimensionless spin parameter a/M ∈ [0, 1)."
-              accent="cyan"
-              delay={2}
-            />
-            <FeatureCard
-              label="Spacetime · Lensing"
-              title="Gravitational Lensing"
-              desc="Photons near the photon sphere (r ≈ 3M) orbit the black hole multiple times, producing Einstein rings, multiple images, and the black hole shadow."
-              accent="cyan"
-              delay={3}
-            />
-            <FeatureCard
-              label="Disk · Structure"
-              title="Thin Accretion Disk"
-              desc="A Shakura-Sunyaev thin disk between configurable inner/outer radii. The inner edge is set at the prograde ISCO. FBM noise creates turbulent ring patterns."
-              accent="amber"
-              delay={1}
-            />
-            <FeatureCard
-              label="Disk · Temperature"
-              title="Blackbody Radiation"
-              desc="Temperature follows T(r) ∝ r^(−3/4). Inner disk (~10,000 K) glows blue-white; outer disk (~3,000 K) glows orange-red, following Wien's displacement law."
-              accent="amber"
-              delay={2}
-            />
-            <FeatureCard
-              label="Disk · Relativity"
-              title="Doppler Beaming"
-              desc="Relativistic Doppler factor D = 1/(1 − β cosθ) modulates intensity as I_obs = I_emit · D³. The approaching side blazes; the receding side dims."
-              accent="amber"
-              delay={3}
-            />
-            <FeatureCard
-              label="Rendering · Background"
-              title="Procedural Star Field"
-              desc="Hash-based noise generates a dense background star field. Star density and brightness are independently controllable parameters."
-              accent="cyan"
-              delay={1}
-            />
-            <FeatureCard
-              label="Rendering · Tone"
-              title="ACES Filmic Tone Mapping"
-              desc="ACES filmic operator followed by sRGB gamma correction (γ = 2.2). Preserves highlight detail while mapping the wide HDR range to display output."
-              accent="cyan"
-              delay={2}
-            />
-            <FeatureCard
-              label="Rendering · Fallback"
-              title="WebGL2 Fallback"
-              desc="Identical Kerr physics ported to a GLSL 300 es fragment shader for browsers without WebGPU. Auto-detected at runtime with a renderer badge."
-              accent="cyan"
-              delay={3}
-            />
+            <FeatureCard label="Spacetime · Geodesics" title="Null Geodesic Integration" desc="Photon paths are integrated using RK2 through the Kerr metric. Boyer-Lindquist r is solved from Cartesian coordinates via a quartic at each step." accent="cyan" delay={1} />
+            <FeatureCard label="Spacetime · Rotation" title="Frame Dragging" desc="Lense-Thirring coupling bends photon trajectories around the spin axis. Controlled by the dimensionless spin parameter a/M ∈ [0, 1)." accent="cyan" delay={2} />
+            <FeatureCard label="Spacetime · Lensing" title="Gravitational Lensing" desc="Photons near the photon sphere (r ≈ 3M) orbit the black hole multiple times, producing Einstein rings, multiple images, and the black hole shadow." accent="cyan" delay={3} />
+            <FeatureCard label="Disk · Structure" title="Thin Accretion Disk" desc="A Shakura-Sunyaev thin disk between configurable inner/outer radii. The inner edge is set at the prograde ISCO. FBM noise creates turbulent ring patterns." accent="amber" delay={1} />
+            <FeatureCard label="Disk · Temperature" title="Blackbody Radiation" desc="Temperature follows T(r) ∝ r^(−3/4). Inner disk (~10,000 K) glows blue-white; outer disk (~3,000 K) glows orange-red, following Wien's displacement law." accent="amber" delay={2} />
+            <FeatureCard label="Disk · Relativity" title="Doppler Beaming" desc="Relativistic Doppler factor D = 1/(1 − β cosθ) modulates intensity as I_obs = I_emit · D³. The approaching side blazes; the receding side dims." accent="amber" delay={3} />
+            <FeatureCard label="Rendering · Background" title="Procedural Star Field" desc="Hash-based noise generates a dense background star field. Star density and brightness are independently controllable parameters." accent="cyan" delay={1} />
+            <FeatureCard label="Rendering · Tone" title="ACES Filmic Tone Mapping" desc="ACES filmic operator followed by sRGB gamma correction (γ = 2.2). Preserves highlight detail while mapping the wide HDR range to display output." accent="cyan" delay={2} />
+            <FeatureCard label="Rendering · Fallback" title="WebGL2 Fallback" desc="Identical Kerr physics ported to a GLSL 300 es fragment shader for browsers without WebGPU. Auto-detected at runtime with a renderer badge." accent="cyan" delay={3} />
           </div>
         </div>
       </section>
@@ -464,7 +517,6 @@ export default function Home() {
       <section id="rendering" className="py-24">
         <div className="container">
           <div className="grid lg:grid-cols-[420px_1fr] gap-16 items-start">
-            {/* Left: wide image */}
             <div className="reveal">
               <div className="relative">
                 <img
@@ -484,8 +536,6 @@ export default function Home() {
                 <div className="absolute top-3 right-3 w-5 h-5 border-t border-r border-amber-500/40" />
               </div>
             </div>
-
-            {/* Right: pipeline description */}
             <div>
               <div className="section-label mb-4 reveal">Architecture</div>
               <h2
@@ -499,62 +549,23 @@ export default function Home() {
                 Each invocation traces one pixel's photon path independently, making the workload
                 embarrassingly parallel across the GPU.
               </p>
-
-              {/* Pipeline steps */}
               <div className="space-y-0 reveal reveal-delay-2">
                 {[
-                  {
-                    step: "01",
-                    title: "Screen → Ray",
-                    desc: "Each pixel maps to a ray direction via the camera's spherical coordinate system (r, θ, φ). FOV ≈ 55°.",
-                    color: "cyan",
-                  },
-                  {
-                    step: "02",
-                    title: "RK2 Integration",
-                    desc: "The ray is stepped through Kerr spacetime using a 2nd-order Runge-Kutta integrator. Each step evaluates the full gravitational + frame-drag acceleration.",
-                    color: "cyan",
-                  },
-                  {
-                    step: "03",
-                    title: "Disk Crossing",
-                    desc: "Sign changes in the y-coordinate detect equatorial plane crossings. Accretion disk color, opacity, and Doppler factor are accumulated per crossing.",
-                    color: "amber",
-                  },
-                  {
-                    step: "04",
-                    title: "Horizon Capture",
-                    desc: "Rays reaching r < 1.05 r₊ are absorbed. The resulting black region forms the characteristic shadow of the black hole.",
-                    color: "cyan",
-                  },
-                  {
-                    step: "05",
-                    title: "Star Field + Tone Map",
-                    desc: "Escaped rays sample the procedural star field. The final HDR color is tone-mapped with ACES filmic and gamma-corrected to sRGB.",
-                    color: "cyan",
-                  },
+                  { step: "01", title: "Screen → Ray", desc: "Each pixel maps to a ray direction via the camera's spherical coordinate system (r, θ, φ). FOV ≈ 55°.", color: "cyan" },
+                  { step: "02", title: "RK2 Integration", desc: "The ray is stepped through Kerr spacetime using a 2nd-order Runge-Kutta integrator. Each step evaluates the full gravitational + frame-drag acceleration.", color: "cyan" },
+                  { step: "03", title: "Disk Crossing", desc: "Sign changes in the y-coordinate detect equatorial plane crossings. Accretion disk color, opacity, and Doppler factor are accumulated per crossing.", color: "amber" },
+                  { step: "04", title: "Horizon Capture", desc: "Rays reaching r < 1.05 r₊ are absorbed. The resulting black region forms the characteristic shadow of the black hole.", color: "cyan" },
+                  { step: "05", title: "Star Field + Tone Map", desc: "Escaped rays sample the procedural star field. The final HDR color is tone-mapped with ACES filmic and gamma-corrected to sRGB.", color: "cyan" },
                 ].map(({ step, title, desc, color }) => (
                   <div key={step} className="flex gap-5 py-5 border-b border-cyan-500/[0.07] last:border-b-0">
-                    <div
-                      className="font-mono text-xs font-bold shrink-0 mt-0.5"
-                      style={{ color: color === "amber" ? "rgba(255,179,71,0.5)" : "rgba(0,229,255,0.4)" }}
-                    >
-                      {step}
-                    </div>
+                    <div className="font-mono text-xs font-bold shrink-0 mt-0.5" style={{ color: color === "amber" ? "rgba(255,179,71,0.5)" : "rgba(0,229,255,0.4)" }}>{step}</div>
                     <div>
-                      <div
-                        className="font-semibold text-sm mb-1"
-                        style={{ color: color === "amber" ? "rgba(255,179,71,0.9)" : "rgba(0,229,255,0.9)" }}
-                      >
-                        {title}
-                      </div>
+                      <div className="font-semibold text-sm mb-1" style={{ color: color === "amber" ? "rgba(255,179,71,0.9)" : "rgba(0,229,255,0.9)" }}>{title}</div>
                       <div className="text-white/40 text-xs leading-relaxed">{desc}</div>
                     </div>
                   </div>
                 ))}
               </div>
-
-              {/* WebGPU specifics */}
               <div className="mt-8 p-4 border border-cyan-500/15 bg-cyan-950/10 reveal reveal-delay-3">
                 <div className="font-mono text-[9px] tracking-widest uppercase text-cyan-500/50 mb-3">WebGPU Compute Shader</div>
                 <div className="grid grid-cols-2 gap-3 text-[10px] font-mono">
@@ -594,13 +605,9 @@ export default function Home() {
             All physics parameters are exposed as live sliders in a collapsible instrument panel.
             Changes propagate to the GPU uniforms in real time — no recompilation required.
           </p>
-
           <div className="grid md:grid-cols-3 gap-px bg-cyan-500/10">
-            {/* Spacetime */}
             <div className="bg-[#000005] p-6 reveal">
-              <div className="font-mono text-[9px] tracking-[0.25em] uppercase text-cyan-500/60 mb-4 border-l-2 border-cyan-500/40 pl-2">
-                ── Spacetime
-              </div>
+              <div className="font-mono text-[9px] tracking-[0.25em] uppercase text-cyan-500/60 mb-4 border-l-2 border-cyan-500/40 pl-2">── Spacetime</div>
               <div className="space-y-4">
                 {[
                   { key: "a / M", range: "[0, 0.999]", desc: "Dimensionless spin parameter" },
@@ -620,12 +627,8 @@ export default function Home() {
                 ))}
               </div>
             </div>
-
-            {/* Accretion disk */}
             <div className="bg-[#000005] p-6 reveal reveal-delay-1">
-              <div className="font-mono text-[9px] tracking-[0.25em] uppercase text-amber-500/60 mb-4 border-l-2 border-amber-500/40 pl-2">
-                ── Accretion Disk
-              </div>
+              <div className="font-mono text-[9px] tracking-[0.25em] uppercase text-amber-500/60 mb-4 border-l-2 border-amber-500/40 pl-2">── Accretion Disk</div>
               <div className="space-y-4">
                 {[
                   { key: "r_inner", range: "[1, 6] M", desc: "Inner disk radius (ISCO)" },
@@ -647,12 +650,8 @@ export default function Home() {
                 ))}
               </div>
             </div>
-
-            {/* Rendering */}
             <div className="bg-[#000005] p-6 reveal reveal-delay-2">
-              <div className="font-mono text-[9px] tracking-[0.25em] uppercase text-white/30 mb-4 border-l-2 border-white/20 pl-2">
-                ── Rendering
-              </div>
+              <div className="font-mono text-[9px] tracking-[0.25em] uppercase text-white/30 mb-4 border-l-2 border-white/20 pl-2">── Rendering</div>
               <div className="space-y-4">
                 {[
                   { key: "Lensing steps", range: "[64, 1024]", desc: "Integration step count" },
@@ -715,8 +714,7 @@ export default function Home() {
               <div className="flex flex-wrap gap-3 reveal reveal-delay-4">
                 <a
                   href="https://github.com/randommysticalperson/kerr-blackhole-webgpu"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 px-5 py-2.5 bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/25 hover:border-cyan-400/70 transition-all duration-200 font-mono text-xs tracking-widest uppercase"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -726,16 +724,13 @@ export default function Home() {
                 </a>
                 <a
                   href="https://arxiv.org/abs/1502.03808"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 px-5 py-2.5 border border-white/15 text-white/50 hover:border-white/30 hover:text-white/70 transition-all duration-200 font-mono text-xs tracking-widest uppercase"
                 >
                   arXiv:1502.03808
                 </a>
               </div>
             </div>
-
-            {/* Right: reference card */}
             <div className="reveal reveal-delay-2">
               <div className="border border-cyan-500/15 p-6 bg-cyan-950/10">
                 <div className="font-mono text-[9px] tracking-widest uppercase text-cyan-500/50 mb-4">Scientific Reference</div>
@@ -744,12 +739,8 @@ export default function Home() {
                     "Visualizing Interstellar's Wormhole"
                   </p>
                 </blockquote>
-                <div className="text-white/55 text-sm font-semibold mb-1">
-                  James, von Tunzelmann, Franklin &amp; Thorne
-                </div>
-                <div className="text-white/30 text-xs mb-4">
-                  Classical and Quantum Gravity 32, 065001 (2015)
-                </div>
+                <div className="text-white/55 text-sm font-semibold mb-1">James, von Tunzelmann, Franklin &amp; Thorne</div>
+                <div className="text-white/30 text-xs mb-4">Classical and Quantum Gravity 32, 065001 (2015)</div>
                 <div className="space-y-2 text-[10px] font-mono">
                   {[
                     ["DOI", "10.1088/0264-9381/32/6/065001"],
@@ -763,18 +754,11 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-
-              {/* Tech stack */}
               <div className="mt-3 border border-cyan-500/10 p-5 bg-black/30">
                 <div className="font-mono text-[9px] tracking-widest uppercase text-white/25 mb-3">Tech Stack</div>
                 <div className="flex flex-wrap gap-2">
                   {["WebGPU", "WebGL2", "WGSL", "GLSL 300 es", "React 19", "TypeScript", "Vite 7", "TailwindCSS v4", "Framer Motion", "Space Grotesk"].map((tag) => (
-                    <span
-                      key={tag}
-                      className="font-mono text-[9px] px-2 py-1 border border-cyan-500/15 text-cyan-400/50 tracking-wider"
-                    >
-                      {tag}
-                    </span>
+                    <span key={tag} className="font-mono text-[9px] px-2 py-1 border border-cyan-500/15 text-cyan-400/50 tracking-wider">{tag}</span>
                   ))}
                 </div>
               </div>
@@ -797,8 +781,7 @@ export default function Home() {
           </div>
           <a
             href="https://github.com/randommysticalperson/kerr-blackhole-webgpu"
-            target="_blank"
-            rel="noopener noreferrer"
+            target="_blank" rel="noopener noreferrer"
             className="font-mono text-[9px] tracking-widest uppercase text-cyan-500/30 hover:text-cyan-400/60 transition-colors"
           >
             GitHub →
