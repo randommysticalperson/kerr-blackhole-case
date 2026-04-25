@@ -285,14 +285,32 @@ function buildUniforms(w: number, h: number, t: number, p: BHParams): Float32Arr
   return d;
 }
 
+// ── Blit WGSL (fullscreen quad sampler — format-agnostic) ────────────────────
+const BLIT_WGSL = `
+@group(0) @binding(0) var blitSampler: sampler;
+@group(0) @binding(1) var blitTex: texture_2d<f32>;
+struct VSOut { @builtin(position) pos: vec4f, @location(0) uv: vec2f };
+@vertex fn vs(@builtin(vertex_index) vi: u32) -> VSOut {
+  var pos = array<vec2f,4>(vec2f(-1,-1),vec2f(1,-1),vec2f(-1,1),vec2f(1,1));
+  var uv  = array<vec2f,4>(vec2f(0,1), vec2f(1,1), vec2f(0,0), vec2f(1,0));
+  var o: VSOut; o.pos = vec4f(pos[vi],0,1); o.uv = uv[vi]; return o;
+}
+@fragment fn fs(i: VSOut) -> @location(0) vec4f {
+  return textureSample(blitTex, blitSampler, i.uv);
+}
+`;
+
 // ── WebGPU renderer hook ──────────────────────────────────────────────────────
 interface GPUState {
   device: GPUDevice;
   pipeline: GPUComputePipeline;
+  blitPipeline: GPURenderPipeline;
+  blitBindGroup: GPUBindGroup;
   uniformBuffer: GPUBuffer;
   outputTexture: GPUTexture;
   bindGroup: GPUBindGroup;
   ctx: GPUCanvasContext;
+  preferredFormat: GPUTextureFormat;
   w: number; h: number;
 }
 
@@ -312,7 +330,19 @@ function useWebGPURenderer(
     return device.createTexture({
       size: [w, h],
       format: "rgba8unorm",
-      usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_SRC,
+      // TEXTURE_BINDING needed for sampler blit; no COPY_SRC required
+      usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING,
+    });
+  }, []);
+
+  const createBlitBindGroup = useCallback((device: GPUDevice, blitBGL: GPUBindGroupLayout, tex: GPUTexture) => {
+    const sampler = device.createSampler({ magFilter: "nearest", minFilter: "nearest" });
+    return device.createBindGroup({
+      layout: blitBGL,
+      entries: [
+        { binding: 0, resource: sampler },
+        { binding: 1, resource: tex.createView() },
+      ],
     });
   }, []);
 
@@ -363,7 +393,23 @@ function useWebGPURenderer(
         compute: { module: shaderModule, entryPoint: "main" },
       });
 
-      stateRef.current = { device, pipeline, uniformBuffer, outputTexture, bindGroup, ctx, w, h };
+      // ── Blit render pipeline (compute output → canvas swap buffer) ──
+      const blitModule = device.createShaderModule({ code: BLIT_WGSL });
+      const blitBGL = device.createBindGroupLayout({
+        entries: [
+          { binding: 0, visibility: GPUShaderStage.FRAGMENT, sampler: { type: "filtering" as GPUSamplerBindingType } },
+          { binding: 1, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: "float" as GPUTextureSampleType, viewDimension: "2d" as GPUTextureViewDimension } },
+        ],
+      });
+      const blitPipeline = device.createRenderPipeline({
+        layout: device.createPipelineLayout({ bindGroupLayouts: [blitBGL] }),
+        vertex:   { module: blitModule, entryPoint: "vs" },
+        fragment: { module: blitModule, entryPoint: "fs", targets: [{ format: preferredFormat }] },
+        primitive: { topology: "triangle-strip" as GPUPrimitiveTopology },
+      });
+      const blitBindGroup = createBlitBindGroup(device, blitBGL, outputTexture);
+
+      stateRef.current = { device, pipeline, blitPipeline, blitBindGroup, uniformBuffer, outputTexture, bindGroup, ctx, preferredFormat, w, h };
       onRendererName?.("WebGPU");
 
       const loop = () => {
@@ -388,8 +434,9 @@ function useWebGPURenderer(
               { binding: 1, resource: newTex.createView() },
             ],
           });
-          s.ctx.configure({ device: s.device, format: preferredFormat, alphaMode: "opaque" });
-          stateRef.current = { ...s, outputTexture: newTex, bindGroup: newBG, w: newW, h: newH };
+          const newBlitBG = createBlitBindGroup(s.device, s.blitPipeline.getBindGroupLayout(0), newTex);
+          s.ctx.configure({ device: s.device, format: s.preferredFormat, alphaMode: "opaque" });
+          stateRef.current = { ...s, outputTexture: newTex, bindGroup: newBG, blitBindGroup: newBlitBG, w: newW, h: newH };
         }
 
         const cur = stateRef.current!;
@@ -403,11 +450,20 @@ function useWebGPURenderer(
         pass.dispatchWorkgroups(Math.ceil(cur.w / 8), Math.ceil(cur.h / 8));
         pass.end();
 
-        // Blit compute output → canvas
+        // Blit compute output → canvas via render pass (format-agnostic)
         const canvasTex = cur.ctx.getCurrentTexture();
-        if (canvasTex.width === cur.w && canvasTex.height === cur.h) {
-          enc.copyTextureToTexture({ texture: cur.outputTexture }, { texture: canvasTex }, [cur.w, cur.h]);
-        }
+        const blitPass = enc.beginRenderPass({
+          colorAttachments: [{
+            view: canvasTex.createView(),
+            loadOp: "clear" as GPULoadOp,
+            storeOp: "store" as GPUStoreOp,
+            clearValue: { r: 0, g: 0, b: 0, a: 1 },
+          }],
+        });
+        blitPass.setPipeline(cur.blitPipeline);
+        blitPass.setBindGroup(0, cur.blitBindGroup);
+        blitPass.draw(4);
+        blitPass.end();
         cur.device.queue.submit([enc.finish()]);
 
         fpsRef.current.frames++;
