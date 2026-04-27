@@ -10,7 +10,38 @@
  */
 
 import MHSimulation from "@/components/MHSimulation";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { Link2 } from "lucide-react";
+
+// ─── Linkable heading component ─────────────────────────────────────────────
+function AnchorHeading({ id, children, className, style }: {
+  id: string;
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const [copied, setCopied] = useState(false);
+  const copy = useCallback(() => {
+    const url = `${window.location.origin}${window.location.pathname}#${id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    });
+  }, [id]);
+  return (
+    <h2 id={id} className={`group flex items-center gap-3 scroll-mt-8 ${className ?? ""}`} style={style}>
+      {children}
+      <button
+        onClick={copy}
+        aria-label="Copy link to section"
+        className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-white/30 hover:text-cyan-400"
+        style={{ fontFamily: "'Space Mono', monospace" }}>
+        <Link2 size={14} />
+        {copied && <span className="text-[10px] tracking-widest text-cyan-400">copied</span>}
+      </button>
+    </h2>
+  );
+}
 
 const HERO_IMG       = "https://d2xsxph8kpxj0f.cloudfront.net/310519663332318761/LWsaMHsQL9wPYEf63JaYY7/mh-hero-Ez8GXDSMe284ot6ro43BKB.png";
 const BLUESHIFT_IMG  = "https://d2xsxph8kpxj0f.cloudfront.net/310519663332318761/LWsaMHsQL9wPYEf63JaYY7/mh-blueshift-gDU5wosVgfGv9Rs3H3H9yR.png";
@@ -145,9 +176,9 @@ export default function MHShowcase() {
           <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="text-violet-400 text-xs tracking-widest uppercase mb-1">Interactive Simulation</p>
-              <h2 className="text-3xl font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              <AnchorHeading id="simulation" className="text-3xl font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                 Causal Structure Visualizer
-              </h2>
+              </AnchorHeading>
             </div>
             <p className="text-white/30 text-xs hidden md:block">
               Penrose diagram · Kerr interior · drag sliders to explore
@@ -164,9 +195,9 @@ export default function MHShowcase() {
       <section id="physics" className="px-8 md:px-16 py-16 border-t border-white/10">
         <div className="max-w-6xl mx-auto">
           <p className="text-cyan-400 text-xs tracking-widest uppercase mb-2">Formal Definition</p>
-          <h2 className="text-3xl font-black mb-10" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <AnchorHeading id="definition" className="text-3xl font-black mb-10" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             The M-H Property
-          </h2>
+          </AnchorHeading>
 
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             {/* Definition card */}
@@ -260,9 +291,9 @@ export default function MHShowcase() {
       <section className="px-8 md:px-16 py-16 border-t border-white/10">
         <div className="max-w-6xl mx-auto">
           <p className="text-white/40 text-xs tracking-widest uppercase mb-2">Causal Regions</p>
-          <h2 className="text-3xl font-black mb-8" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <AnchorHeading id="penrose-regions" className="text-3xl font-black mb-8" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             Penrose Diagram Regions
-          </h2>
+          </AnchorHeading>
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -298,9 +329,9 @@ export default function MHShowcase() {
       <section className="px-8 md:px-16 py-16 border-t border-white/10">
         <div className="max-w-6xl mx-auto">
           <p className="text-white/40 text-xs tracking-widest uppercase mb-2">Key Concepts</p>
-          <h2 className="text-3xl font-black mb-8" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <AnchorHeading id="key-concepts" className="text-3xl font-black mb-8" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             What Makes M-H Spacetimes Special
-          </h2>
+          </AnchorHeading>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
               { cat: "Causal Structure",  color: "#00E5FF", title: "Infinite past in finite time",   body: "The entire infinite worldline λ lies in the causal past J⁻(p) of a single event, compressing infinite history into a finite observer journey." },
@@ -328,9 +359,9 @@ export default function MHShowcase() {
       <section className="px-8 md:px-16 py-16 border-t border-white/10">
         <div className="max-w-6xl mx-auto">
           <p className="text-white/40 text-xs tracking-widest uppercase mb-2">Broader Context</p>
-          <h2 className="text-3xl font-black mb-3" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          <AnchorHeading id="undecidable-physics" className="text-3xl font-black mb-3" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             Undecidable Problems in Physics
-          </h2>
+          </AnchorHeading>
           <p className="text-white/50 text-sm leading-relaxed mb-10 max-w-3xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             M-H spacetimes are one entry in a growing catalogue of physical systems whose behaviour is provably undecidable —
             meaning no algorithm can determine the answer in general, regardless of computational resources.
@@ -571,9 +602,9 @@ export default function MHShowcase() {
           {/* Section header */}
           <div className="mb-12">
             <p className="text-white/30 text-xs tracking-widest uppercase mb-2">Millennium Problem II</p>
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <AnchorHeading id="yang-mills" className="text-3xl md:text-4xl font-black text-white mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               Yang–Mills Existence &amp; Mass Gap
-            </h2>
+            </AnchorHeading>
             <p className="text-white/50 text-sm max-w-2xl leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               One of the seven Clay Millennium Prize Problems ($1,000,000 prize, status: open). The problem asks for a rigorous
               mathematical construction of quantum Yang–Mills theory in four dimensions — the gauge theory underlying the Standard Model —
