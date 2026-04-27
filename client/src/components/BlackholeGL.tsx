@@ -240,6 +240,8 @@ uniform float u_star_brightness;
 uniform float u_exposure;
 uniform float u_disk_brightness;
 uniform float u_turbulence;
+uniform float u_use_texture;
+uniform sampler2D u_sky_tex;
 
 float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 vec2  hash22(vec2 p){return vec2(fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453),fract(sin(dot(p,vec2(269.5,183.3)))*43758.5453));}
@@ -309,15 +311,20 @@ interface GPUState {
   uniformBuffer: GPUBuffer;
   outputTexture: GPUTexture;
   bindGroup: GPUBindGroup;
+  skyBindGroup: GPUBindGroup;  // binding 2+3: sampler + sky texture
   ctx: GPUCanvasContext;
   preferredFormat: GPUTextureFormat;
   w: number; h: number;
+  hasSkyTex: boolean;
+  skyTexture?: GPUTexture;
+  skyBGL: GPUBindGroupLayout;
 }
 
 function useWebGPURenderer(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
   paramsRef: React.MutableRefObject<BHParams>,
   isRunningRef: React.MutableRefObject<boolean>,
+  skyBitmapRef: React.MutableRefObject<ImageBitmap | null>,
   onFps?: (fps: number) => void,
   onRendererName?: (name: string) => void
 ) {
@@ -325,12 +332,12 @@ function useWebGPURenderer(
   const startRef = useRef(performance.now());
   const rafRef = useRef(0);
   const fpsRef = useRef({ frames: 0, last: performance.now() });
+  const lastBitmapRef = useRef<ImageBitmap | null>(null);
 
-  const createTexture = useCallback((device: GPUDevice, w: number, h: number) => {
+  const createOutputTexture = useCallback((device: GPUDevice, w: number, h: number) => {
     return device.createTexture({
       size: [w, h],
       format: "rgba8unorm",
-      // TEXTURE_BINDING needed for sampler blit; no COPY_SRC required
       usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING,
     });
   }, []);
@@ -342,6 +349,28 @@ function useWebGPURenderer(
       entries: [
         { binding: 0, resource: sampler },
         { binding: 1, resource: tex.createView() },
+      ],
+    });
+  }, []);
+
+  // Create a 1x1 dummy sky texture so the bind group is always valid
+  const createDummySkyTexture = useCallback((device: GPUDevice) => {
+    const tex = device.createTexture({
+      size: [1, 1],
+      format: "rgba8unorm",
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+    });
+    device.queue.writeTexture({ texture: tex }, new Uint8Array([0, 0, 0, 255]), { bytesPerRow: 4 }, [1, 1]);
+    return tex;
+  }, []);
+
+  const createSkyBindGroup = useCallback((device: GPUDevice, skyBGL: GPUBindGroupLayout, skyTex: GPUTexture) => {
+    const sampler = device.createSampler({ magFilter: "linear", minFilter: "linear", addressModeU: "repeat", addressModeV: "clamp-to-edge" });
+    return device.createBindGroup({
+      layout: skyBGL,
+      entries: [
+        { binding: 2, resource: sampler },
+        { binding: 3, resource: skyTex.createView() },
       ],
     });
   }, []);
@@ -372,8 +401,9 @@ function useWebGPURenderer(
         size: UNIFORM_FLOATS * 4,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
       });
-      const outputTexture = createTexture(device, w, h);
+      const outputTexture = createOutputTexture(device, w, h);
 
+      // Compute BGL: binding 0 = uniforms, binding 1 = output storage texture
       const bgl = device.createBindGroupLayout({
         entries: [
           { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform" as GPUBufferBindingType } },
@@ -381,6 +411,14 @@ function useWebGPURenderer(
             storageTexture: { access: "write-only" as GPUStorageTextureAccess, format: "rgba8unorm" as GPUTextureFormat, viewDimension: "2d" as GPUTextureViewDimension } },
         ],
       });
+      // Sky BGL: binding 2 = sampler, binding 3 = sky texture
+      const skyBGL = device.createBindGroupLayout({
+        entries: [
+          { binding: 2, visibility: GPUShaderStage.COMPUTE, sampler: { type: "filtering" as GPUSamplerBindingType } },
+          { binding: 3, visibility: GPUShaderStage.COMPUTE, texture: { sampleType: "float" as GPUTextureSampleType, viewDimension: "2d" as GPUTextureViewDimension } },
+        ],
+      });
+
       const bindGroup = device.createBindGroup({
         layout: bgl,
         entries: [
@@ -388,12 +426,15 @@ function useWebGPURenderer(
           { binding: 1, resource: outputTexture.createView() },
         ],
       });
+      const dummySkyTex = createDummySkyTexture(device);
+      const skyBindGroup = createSkyBindGroup(device, skyBGL, dummySkyTex);
+
       const pipeline = device.createComputePipeline({
-        layout: device.createPipelineLayout({ bindGroupLayouts: [bgl] }),
+        layout: device.createPipelineLayout({ bindGroupLayouts: [bgl, skyBGL] }),
         compute: { module: shaderModule, entryPoint: "main" },
       });
 
-      // ── Blit render pipeline (compute output → canvas swap buffer) ──
+      // Blit render pipeline
       const blitModule = device.createShaderModule({ code: BLIT_WGSL });
       const blitBGL = device.createBindGroupLayout({
         entries: [
@@ -409,7 +450,8 @@ function useWebGPURenderer(
       });
       const blitBindGroup = createBlitBindGroup(device, blitBGL, outputTexture);
 
-      stateRef.current = { device, pipeline, blitPipeline, blitBindGroup, uniformBuffer, outputTexture, bindGroup, ctx, preferredFormat, w, h };
+      stateRef.current = { device, pipeline, blitPipeline, blitBindGroup, uniformBuffer, outputTexture,
+        bindGroup, skyBindGroup, skyBGL, ctx, preferredFormat, w, h, hasSkyTex: false, skyTexture: dummySkyTex };
       onRendererName?.("WebGPU");
 
       const loop = () => {
@@ -420,13 +462,35 @@ function useWebGPURenderer(
         const s = stateRef.current;
         if (!s) return;
 
+        // Upload new sky bitmap if changed
+        const bitmap = skyBitmapRef.current;
+        if (bitmap !== lastBitmapRef.current) {
+          lastBitmapRef.current = bitmap;
+          if (bitmap) {
+            const newSkyTex = device.createTexture({
+              size: [bitmap.width, bitmap.height],
+              format: "rgba8unorm",
+              usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+            });
+            device.queue.copyExternalImageToTexture({ source: bitmap }, { texture: newSkyTex }, [bitmap.width, bitmap.height]);
+            s.skyTexture?.destroy();
+            const newSkyBG = createSkyBindGroup(device, s.skyBGL, newSkyTex);
+            stateRef.current = { ...s, skyTexture: newSkyTex, skyBindGroup: newSkyBG, hasSkyTex: true };
+          } else {
+            const dummy = createDummySkyTexture(device);
+            s.skyTexture?.destroy();
+            const newSkyBG = createSkyBindGroup(device, s.skyBGL, dummy);
+            stateRef.current = { ...s, skyTexture: dummy, skyBindGroup: newSkyBG, hasSkyTex: false };
+          }
+        }
+
         // Resize check
         const newW = Math.max(1, Math.floor(canvas.clientWidth * dpr));
         const newH = Math.max(1, Math.floor(canvas.clientHeight * dpr));
         if (newW !== s.w || newH !== s.h) {
           canvas.width = newW; canvas.height = newH;
           s.outputTexture.destroy();
-          const newTex = createTexture(s.device, newW, newH);
+          const newTex = createOutputTexture(s.device, newW, newH);
           const newBG = s.device.createBindGroup({
             layout: bgl,
             entries: [
@@ -436,21 +500,25 @@ function useWebGPURenderer(
           });
           const newBlitBG = createBlitBindGroup(s.device, s.blitPipeline.getBindGroupLayout(0), newTex);
           s.ctx.configure({ device: s.device, format: s.preferredFormat, alphaMode: "opaque" });
-          stateRef.current = { ...s, outputTexture: newTex, bindGroup: newBG, blitBindGroup: newBlitBG, w: newW, h: newH };
+          stateRef.current = { ...stateRef.current!, outputTexture: newTex, bindGroup: newBG, blitBindGroup: newBlitBG, w: newW, h: newH };
         }
 
         const cur = stateRef.current!;
         const time = (performance.now() - startRef.current) / 1000;
-        cur.device.queue.writeBuffer(cur.uniformBuffer, 0, buildUniforms(cur.w, cur.h, time, paramsRef.current));
+        // Pass hasSkyTex flag via pad0 uniform
+        const uniforms = buildUniforms(cur.w, cur.h, time, paramsRef.current);
+        uniforms[18] = cur.hasSkyTex ? 1.0 : 0.0;
+        cur.device.queue.writeBuffer(cur.uniformBuffer, 0, uniforms);
 
         const enc = cur.device.createCommandEncoder();
         const pass = enc.beginComputePass();
         pass.setPipeline(cur.pipeline);
         pass.setBindGroup(0, cur.bindGroup);
+        pass.setBindGroup(1, cur.skyBindGroup);
         pass.dispatchWorkgroups(Math.ceil(cur.w / 8), Math.ceil(cur.h / 8));
         pass.end();
 
-        // Blit compute output → canvas via render pass (format-agnostic)
+        // Blit compute output → canvas
         const canvasTex = cur.ctx.getCurrentTexture();
         const blitPass = enc.beginRenderPass({
           colorAttachments: [{
@@ -492,12 +560,14 @@ function useWebGL2Renderer(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
   paramsRef: React.MutableRefObject<BHParams>,
   isRunningRef: React.MutableRefObject<boolean>,
+  skyBitmapRef: React.MutableRefObject<ImageBitmap | null>,
   enabled: boolean,
   onFps?: (fps: number) => void
 ) {
   const startRef = useRef(performance.now());
   const rafRef = useRef(0);
   const fpsRef = useRef({ frames: 0, last: performance.now() });
+  const lastBitmapRef = useRef<ImageBitmap | null>(null);
 
   useEffect(() => {
     if (!enabled) return;
@@ -530,9 +600,20 @@ function useWebGL2Renderer(
 
     const uNames = ["u_resolution","u_time","u_spin","u_camera_r","u_camera_theta","u_camera_phi",
       "u_disk_inner","u_disk_outer","u_disk_temp","u_doppler_strength","u_lensing_steps","u_step_size",
-      "u_star_density","u_star_brightness","u_exposure","u_disk_brightness","u_turbulence"];
+      "u_star_density","u_star_brightness","u_exposure","u_disk_brightness","u_turbulence",
+      "u_use_texture","u_sky_tex"];
     const u: Record<string, WebGLUniformLocation | null> = {};
     uNames.forEach(n => { u[n] = gl.getUniformLocation(prog, n); });
+
+    // Create sky texture slot (starts as 1x1 black)
+    const skyTex = gl.createTexture()!;
+    gl.bindTexture(gl.TEXTURE_2D, skyTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,255]));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindTexture(gl.TEXTURE_2D, null);
 
     let stopped = false;
     const loop = () => {
@@ -543,6 +624,20 @@ function useWebGL2Renderer(
       const h = Math.floor(canvas.clientHeight * dpr);
       if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0,0,w,h); }
       if (!isRunningRef.current) return;
+
+      // Upload new bitmap if changed
+      const bitmap = skyBitmapRef.current;
+      if (bitmap !== lastBitmapRef.current) {
+        lastBitmapRef.current = bitmap;
+        gl.bindTexture(gl.TEXTURE_2D, skyTex);
+        if (bitmap) {
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bitmap);
+        } else {
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,255]));
+        }
+        gl.bindTexture(gl.TEXTURE_2D, null);
+      }
+
       const now = performance.now();
       const t = (now - startRef.current) / 1000;
       const p = paramsRef.current;
@@ -564,6 +659,11 @@ function useWebGL2Renderer(
       gl.uniform1f(u["u_exposure"], p.exposure);
       gl.uniform1f(u["u_disk_brightness"], p.diskBrightness);
       gl.uniform1f(u["u_turbulence"], p.turbulence);
+      // Sky texture
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, skyTex);
+      gl.uniform1i(u["u_sky_tex"], 0);
+      gl.uniform1f(u["u_use_texture"], bitmap ? 1.0 : 0.0);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       fpsRef.current.frames++;
       if (now - fpsRef.current.last >= 1000) {
@@ -573,7 +673,7 @@ function useWebGL2Renderer(
       }
     };
     rafRef.current = requestAnimationFrame(loop);
-    return () => { stopped = true; cancelAnimationFrame(rafRef.current); };
+    return () => { stopped = true; cancelAnimationFrame(rafRef.current); gl.deleteTexture(skyTex); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
 }
@@ -623,14 +723,36 @@ export default function BlackholeGL() {
   const [rendererName, setRendererName] = useState<string>("Detecting…");
   const [useGL2, setUseGL2] = useState(false);
 
+  // Sky texture upload state
+  const skyBitmapRef = useRef<ImageBitmap | null>(null);
+  const [skyThumb, setSkyThumb] = useState<string | null>(null); // object URL for thumbnail
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleTextureUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const bitmap = await createImageBitmap(file);
+    // Revoke previous object URL
+    if (skyThumb) URL.revokeObjectURL(skyThumb);
+    const url = URL.createObjectURL(file);
+    skyBitmapRef.current = bitmap;
+    setSkyThumb(url);
+    // Reset input so same file can be re-selected
+    e.target.value = "";
+  }, [skyThumb]);
+
+  const clearTexture = useCallback(() => {
+    if (skyThumb) URL.revokeObjectURL(skyThumb);
+    skyBitmapRef.current = null;
+    setSkyThumb(null);
+  }, [skyThumb]);
+
   // Try WebGPU first; if unavailable, fall back to WebGL2
-  useWebGPURenderer(canvasRef, paramsRef, isRunningRef, setFps, (name) => {
+  useWebGPURenderer(canvasRef, paramsRef, isRunningRef, skyBitmapRef, setFps, (name) => {
     setRendererName(name);
     if (name === "WebGL2") setUseGL2(true);
   });
-  useWebGL2Renderer(canvasRef, paramsRef, isRunningRef, useGL2, setFps);
-
-  // Camera orbit via mouse drag
+  useWebGL2Renderer(canvasRef, paramsRef, isRunningRef, skyBitmapRef, useGL2, setFps); // Camera orbit via mouse drag
   const dragRef = useRef<{ active: boolean; lastX: number; lastY: number }>({ active: false, lastX: 0, lastY: 0 });
   const onMouseDown = useCallback((e: React.MouseEvent) => { dragRef.current = { active: true, lastX: e.clientX, lastY: e.clientY }; }, []);
   const onMouseMove = useCallback((e: React.MouseEvent) => {
@@ -720,6 +842,38 @@ export default function BlackholeGL() {
             <Slider label="Exposure" value={params.exposure} min={0.1} max={5} step={0.1} accent="white" onChange={set("exposure")} />
           </div>
         </div>
+
+        {/* Sky Texture Upload */}
+        <div>
+          <div className="font-mono text-[8px] tracking-[0.3em] uppercase text-white/30 mb-3 border-l border-white/15 pl-2">── Sky Texture</div>
+          <div className="space-y-2">
+            {skyThumb ? (
+              <div className="relative">
+                <img src={skyThumb} alt="Sky texture" className="w-full h-16 object-cover" style={{ border: "1px solid rgba(0,229,255,0.2)" }} />
+                <button onClick={clearTexture}
+                  className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center bg-black/70 border border-white/20 text-white/60 hover:text-white hover:border-white/40 transition-all font-mono text-[9px]">
+                  ✕
+                </button>
+                <div className="font-mono text-[8px] text-cyan-400/50 mt-1">Custom sky active</div>
+              </div>
+            ) : (
+              <div className="font-mono text-[8px] text-white/25 mb-1">Upload an equirectangular panorama to replace the procedural starfield.</div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleTextureUpload}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full px-2 py-1.5 border border-white/15 text-white/40 hover:text-white/70 hover:border-white/30 transition-all font-mono text-[8px] tracking-widest uppercase text-center">
+              {skyThumb ? "↺ Replace" : "↑ Upload Image"}
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   );
