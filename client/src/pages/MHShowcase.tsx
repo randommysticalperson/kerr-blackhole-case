@@ -328,12 +328,93 @@ export default function MHShowcase() {
       <section className="px-8 md:px-16 py-16 border-t border-white/10">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
           <div>
-            <p className="text-white/40 text-xs tracking-widest uppercase mb-4">References</p>
-            <div className="space-y-4 text-xs text-white/50 leading-relaxed">
-              <p>Malament, D. B. (1985). <em>Minimal acceleration requirements for 'time travel' in Gödel space-time.</em> Journal of Mathematical Physics.</p>
-              <p>Hogarth, M. (1994). <em>Non-Turing computers and non-Turing computability.</em> PSA: Proceedings of the Biennial Meeting of the Philosophy of Science Association.</p>
-              <p>Etesi, G. & Németi, I. (2002). <em>Non-Turing computations via Malament–Hogarth space-times.</em> International Journal of Theoretical Physics.</p>
-              <p>Poisson, E. & Israel, W. (1990). <em>Internal structure of black holes.</em> Physical Review D — mass inflation.</p>
+            <p className="text-white/40 text-xs tracking-widest uppercase mb-4">Peer-Reviewed References</p>
+            <div className="space-y-5 text-xs leading-relaxed">
+
+              {/* [1] Hogarth 1992 — foundational paper coining M-H spacetimes */}
+              <div className="border-l-2 border-violet-400/40 pl-3">
+                <p className="text-white/70 mb-0.5">
+                  <span className="text-violet-400 mr-1">[1]</span>
+                  Hogarth, M. L. (1992). Does general relativity allow an observer to view an eternity in a finite time?
+                  <em className="text-white/50"> Foundations of Physics Letters</em>, <strong className="text-white/60">5</strong>(2), 173–181.
+                </p>
+                <a href="https://doi.org/10.1007/BF00682813" target="_blank" rel="noopener noreferrer"
+                  className="text-violet-400/60 hover:text-violet-300 transition-colors">doi:10.1007/BF00682813</a>
+                <p className="text-white/30 mt-0.5">Introduces the M-H spacetime concept; shows anti-de Sitter spacetime is an example.</p>
+              </div>
+
+              {/* [2] Earman & Norton 1993 — supertasks analysis */}
+              <div className="border-l-2 border-cyan-400/40 pl-3">
+                <p className="text-white/70 mb-0.5">
+                  <span className="text-cyan-400 mr-1">[2]</span>
+                  Earman, J. &amp; Norton, J. D. (1993). Forever is a day: Supertasks in Pitowsky and Malament–Hogarth spacetimes.
+                  <em className="text-white/50"> Philosophy of Science</em>, <strong className="text-white/60">60</strong>(1), 22–42.
+                </p>
+                <a href="https://doi.org/10.1086/289716" target="_blank" rel="noopener noreferrer"
+                  className="text-cyan-400/60 hover:text-cyan-300 transition-colors">doi:10.1086/289716</a>
+                <p className="text-white/30 mt-0.5">Analyses physical feasibility of supertasks in M-H spacetimes; 226 citations.</p>
+              </div>
+
+              {/* [3] Hogarth 1994 — hypercomputation protocol */}
+              <div className="border-l-2 border-amber-400/40 pl-3">
+                <p className="text-white/70 mb-0.5">
+                  <span className="text-amber-400 mr-1">[3]</span>
+                  Hogarth, M. (1994). Non-Turing computers and non-Turing computability.
+                  <em className="text-white/50"> PSA: Proceedings of the Biennial Meeting of the Philosophy of Science Association</em>, <strong className="text-white/60">1</strong>, 126–138.
+                </p>
+                <a href="https://doi.org/10.1086/psaprocbienmeetp.1994.1.193018" target="_blank" rel="noopener noreferrer"
+                  className="text-amber-400/60 hover:text-amber-300 transition-colors">doi:10.1086/psaprocbienmeetp.1994.1.193018</a>
+                <p className="text-white/30 mt-0.5">Shows any arithmetic statement is decidable in a suitable M-H spacetime.</p>
+              </div>
+
+              {/* [4] Etesi & Németi 2002 — Kerr black holes and hypercomputation */}
+              <div className="border-l-2 border-violet-400/40 pl-3">
+                <p className="text-white/70 mb-0.5">
+                  <span className="text-violet-400 mr-1">[4]</span>
+                  Etesi, G. &amp; Németi, I. (2002). Non-Turing computations via Malament–Hogarth space-times.
+                  <em className="text-white/50"> International Journal of Theoretical Physics</em>, <strong className="text-white/60">41</strong>(2), 341–370.
+                </p>
+                <a href="https://doi.org/10.1023/A:1014019225365" target="_blank" rel="noopener noreferrer"
+                  className="text-violet-400/60 hover:text-violet-300 transition-colors">doi:10.1023/A:1014019225365</a>
+                <p className="text-white/30 mt-0.5">Proves rotating Kerr black holes are M-H spacetimes; 297 citations.</p>
+              </div>
+
+              {/* [5] Poisson & Israel 1990 — mass inflation */}
+              <div className="border-l-2 border-white/20 pl-3">
+                <p className="text-white/70 mb-0.5">
+                  <span className="text-white/40 mr-1">[5]</span>
+                  Poisson, E. &amp; Israel, W. (1990). Internal structure of black holes.
+                  <em className="text-white/50"> Physical Review D</em>, <strong className="text-white/60">41</strong>(6), 1796–1809.
+                </p>
+                <a href="https://doi.org/10.1103/PhysRevD.41.1796" target="_blank" rel="noopener noreferrer"
+                  className="text-white/30 hover:text-white/60 transition-colors">doi:10.1103/PhysRevD.41.1796</a>
+                <p className="text-white/30 mt-0.5">Discovers mass inflation: infalling radiation is blueshifted to infinite energy near r₋.</p>
+              </div>
+
+              {/* [6] Dafermos 2003 — Cauchy horizon stability */}
+              <div className="border-l-2 border-white/20 pl-3">
+                <p className="text-white/70 mb-0.5">
+                  <span className="text-white/40 mr-1">[6]</span>
+                  Dafermos, M. (2003). Stability and instability of the Cauchy horizon for the spherically symmetric Einstein–Maxwell–scalar field equations.
+                  <em className="text-white/50"> Annals of Mathematics</em>, <strong className="text-white/60">158</strong>(3), 875–928.
+                </p>
+                <a href="https://doi.org/10.4007/annals.2003.158.875" target="_blank" rel="noopener noreferrer"
+                  className="text-white/30 hover:text-white/60 transition-colors">doi:10.4007/annals.2003.158.875</a>
+                <p className="text-white/30 mt-0.5">Rigorous analysis of Cauchy horizon stability; 215 citations.</p>
+              </div>
+
+              {/* [7] Welch 2008 — extent of computation */}
+              <div className="border-l-2 border-cyan-400/40 pl-3">
+                <p className="text-white/70 mb-0.5">
+                  <span className="text-cyan-400 mr-1">[7]</span>
+                  Welch, P. D. (2008). Turing unbound: On the extent of computation in Malament–Hogarth spacetimes.
+                  <em className="text-white/50"> The British Journal for the Philosophy of Science</em>, <strong className="text-white/60">59</strong>(4), 659–674.
+                </p>
+                <a href="https://doi.org/10.1093/bjps/axn031" target="_blank" rel="noopener noreferrer"
+                  className="text-cyan-400/60 hover:text-cyan-300 transition-colors">doi:10.1093/bjps/axn031</a>
+                <p className="text-white/30 mt-0.5">Shows M-H spacetimes can resolve all hyperarithmetic (Borel) statements — far beyond arithmetic.</p>
+              </div>
+
             </div>
           </div>
           <div>
