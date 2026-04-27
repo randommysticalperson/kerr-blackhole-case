@@ -421,45 +421,131 @@ export default function MHShowcase() {
               </div>
             </div>
 
-            {/* Problem 3 — Fluid Particle Paths */}
-            <div className="border border-white/10 bg-white/[0.02] p-6 grid md:grid-cols-[1fr_2fr] gap-6">
-              <div>
-                <p className="text-[10px] tracking-widest uppercase mb-2" style={{ color: "#B464FF" }}>Fluid Dynamics / Topology</p>
-                <h3 className="text-white text-lg font-black mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                  Euler Flow Reachability
+            {/* Problem 3 — Euler Flow / Navier-Stokes */}
+            <div className="border border-violet-400/20 bg-white/[0.02] overflow-hidden">
+
+              {/* Header strip */}
+              <div className="px-6 pt-6 pb-4 border-b border-white/10">
+                <p className="text-[10px] tracking-widest uppercase mb-1" style={{ color: "#B464FF" }}>Fluid Dynamics · PDE Theory · Millennium Problem</p>
+                <h3 className="text-white text-xl font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  Euler Flow Reachability & the 3D Navier–Stokes Problem
                 </h3>
-                <p className="text-white/40 text-xs font-mono">Cardona, Miranda, Peralta-Salas & Presas (2021)</p>
-                <a href="https://doi.org/10.1073/pnas.2026818118" target="_blank" rel="noopener noreferrer"
-                  className="text-violet-400/60 hover:text-violet-300 transition-colors text-xs font-mono block mt-1">doi:10.1073/pnas.2026818118</a>
-                <p className="text-white/30 text-xs mt-2 font-mono">PNAS 118(19), e2026818118</p>
-                <a href="https://arxiv.org/abs/2012.12828" target="_blank" rel="noopener noreferrer"
-                  className="text-violet-400/40 hover:text-violet-300 transition-colors text-xs font-mono block mt-1">arXiv:2012.12828</a>
+                <p className="text-white/40 text-xs font-mono mt-1">Tao (2014) · Cardona, Miranda, Peralta-Salas & Presas (2021) · Cardona, Miranda & Peralta-Salas (2021)</p>
               </div>
-              <div className="space-y-3">
-                <p className="text-white/70 text-sm leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                  It is <strong className="text-white">undecidable</strong> whether a particle path of an ideal (Euler) fluid on a 3D domain
-                  eventually reaches a specified region in space.
-                </p>
-                <p className="text-white/50 text-xs leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                  The authors construct a stationary Euler flow on a Riemannian S³ that is Turing complete: its particle trajectories simulate
-                  any Turing machine via a Poincaré map on a cross-section. The reachability question for a particle is therefore equivalent
-                  to the Halting Problem. The proof fuses symbolic dynamics, contact topology (Reeb fields), and the Reeb–Beltrami correspondence.
-                  A companion paper (Cardona et al., <em>J. Math. Pures Appl.</em> 169, 2023) extends the result to Euclidean space.
-                </p>
-                <div className="flex gap-4 mt-2">
-                  <div className="text-center">
-                    <p className="text-violet-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>2021</p>
-                    <p className="text-white/30 text-[10px] tracking-widest uppercase">PNAS</p>
+
+              {/* Main content */}
+              <div className="p-6 space-y-6">
+
+                {/* Core undecidability result */}
+                <div className="grid md:grid-cols-[1fr_2fr] gap-6">
+                  <div>
+                    <p className="text-violet-400 text-xs tracking-widest uppercase mb-2">Core Result</p>
+                    <p className="text-white/70 text-sm leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                      It is <strong className="text-white">undecidable</strong> whether a fluid particle in a stationary ideal (Euler) flow
+                      on a 3-dimensional Riemannian domain ever reaches a specified open set.
+                    </p>
+                    <div className="mt-4 space-y-2">
+                      <div className="border border-violet-400/20 bg-violet-400/5 px-3 py-2">
+                        <p className="text-violet-300 text-xs font-mono">Cardona et al. (2021)</p>
+                        <a href="https://doi.org/10.1073/pnas.2026818118" target="_blank" rel="noopener noreferrer"
+                          className="text-violet-400/60 hover:text-violet-300 transition-colors text-xs font-mono block">doi:10.1073/pnas.2026818118</a>
+                        <p className="text-white/30 text-[10px] font-mono">PNAS 118(19) · arXiv:2012.12828</p>
+                      </div>
+                      <div className="border border-violet-400/20 bg-violet-400/5 px-3 py-2">
+                        <p className="text-violet-300 text-xs font-mono">Cardona, Miranda & Peralta-Salas (2021)</p>
+                        <a href="https://doi.org/10.1093/imrn/rnab233" target="_blank" rel="noopener noreferrer"
+                          className="text-violet-400/60 hover:text-violet-300 transition-colors text-xs font-mono block">doi:10.1093/imrn/rnab233</a>
+                        <p className="text-white/30 text-[10px] font-mono">Int. Math. Res. Not. 2021, rnab233 · arXiv:2104.04356</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-violet-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>S³</p>
-                    <p className="text-white/30 text-[10px] tracking-widest uppercase">Domain</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-violet-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Euler</p>
-                    <p className="text-white/30 text-[10px] tracking-widest uppercase">Equations</p>
+                  <div className="space-y-3">
+                    <p className="text-white/60 text-xs leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                      The 2021 PNAS paper constructs a <strong className="text-white">Turing-complete stationary Euler flow on a Riemannian S³</strong>:
+                      its particle trajectories simulate any Turing machine via a Poincaré map on a cross-section.
+                      The reachability question is therefore equivalent to the Halting Problem — undecidable by Church–Turing.
+                      The proof fuses three ingredients: Moore's theory of generalised shifts (symbolic dynamics),
+                      contact topology (Reeb fields on S³), and the Reeb–Beltrami correspondence that converts the Reeb field
+                      into a stationary solution of the incompressible Euler equations.
+                    </p>
+                    <p className="text-white/60 text-xs leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                      The companion paper (<em>Int. Math. Res. Not.</em> 2021) extends the result to <strong className="text-white">time-dependent Euler
+                      on a compact high-dimensional Riemannian manifold</strong>, and as a spin-off disproves Moore's 1998 conjecture
+                      on the non-existence of analytic Turing-complete maps on compact manifolds.
+                    </p>
+                    <div className="flex gap-6">
+                      <div className="text-center">
+                        <p className="text-violet-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>69</p>
+                        <p className="text-white/30 text-[10px] tracking-widest uppercase">Citations</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-violet-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>S³</p>
+                        <p className="text-white/30 text-[10px] tracking-widest uppercase">Domain</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-violet-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Euler</p>
+                        <p className="text-white/30 text-[10px] tracking-widest uppercase">Stationary</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
+
+                {/* Tao's blow-up program — the Navier-Stokes connection */}
+                <div className="border-t border-white/10 pt-6">
+                  <p className="text-amber-400 text-xs tracking-widest uppercase mb-3">Tao's Blow-Up Program — The Navier–Stokes Connection</p>
+                  <div className="grid md:grid-cols-[1fr_2fr] gap-6">
+                    <div>
+                      <p className="text-white/40 text-xs font-mono mb-1">Tao (2016)</p>
+                      <a href="https://doi.org/10.1090/jams/838" target="_blank" rel="noopener noreferrer"
+                        className="text-amber-400/60 hover:text-amber-300 transition-colors text-xs font-mono block">doi:10.1090/jams/838</a>
+                      <p className="text-white/30 text-[10px] font-mono mt-1">J. Amer. Math. Soc. 29, 601–674</p>
+                      <a href="https://arxiv.org/abs/1402.0290" target="_blank" rel="noopener noreferrer"
+                        className="text-amber-400/40 hover:text-amber-300 transition-colors text-[10px] font-mono block mt-1">arXiv:1402.0290</a>
+                      <div className="mt-3 border border-amber-400/20 bg-amber-400/5 px-3 py-2">
+                        <p className="text-amber-300 text-[10px] font-mono uppercase tracking-widest">Millennium Problem</p>
+                        <p className="text-white/50 text-[10px] font-mono mt-0.5">Clay Math. Institute</p>
+                        <p className="text-white/30 text-[10px] font-mono">Prize: $1,000,000 USD</p>
+                        <p className="text-white/30 text-[10px] font-mono">Status: <span className="text-amber-400">Open</span></p>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <p className="text-white/70 text-sm leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                        The 3D Navier–Stokes regularity problem asks: do smooth initial conditions always produce smooth solutions for all time,
+                        or can solutions develop <strong className="text-white">singularities (blow-ups) in finite time</strong>?
+                        This is one of the seven Clay Millennium Prize Problems, with a $1,000,000 prize for a solution.
+                      </p>
+                      <p className="text-white/60 text-xs leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                        Tao's 2016 paper constructs an <em>averaged</em> Navier–Stokes equation — one that satisfies the same energy identity
+                        and all standard function-space estimates as the true equation — for which solutions <strong className="text-white">blow up in finite time</strong>.
+                        This establishes the "supercriticality barrier": no proof strategy that relies only on energy estimates can resolve
+                        the regularity problem. Tao's programme proposes that if the Euler equations are Turing complete,
+                        one could encode a computation whose halting forces a blow-up in the true Navier–Stokes equations.
+                      </p>
+                      <p className="text-white/60 text-xs leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                        The Cardona et al. 2021 result partially realises this programme: taking the Turing-complete Euler flow as initial datum
+                        gives a global Navier–Stokes solution that can simulate only a <strong className="text-white">finite</strong> number of Turing machine steps
+                        (viscosity damps the computation). Turing completeness of the full Navier–Stokes equations — and hence the blow-up
+                        question via this route — <strong className="text-white">remains open</strong>.
+                      </p>
+                      {/* Timeline */}
+                      <div className="mt-2 flex gap-0 text-[10px] font-mono">
+                        {[
+                          { year: "1934", label: "Leray weak solutions", color: "#B464FF" },
+                          { year: "2000", label: "Clay Millennium Prize", color: "#FFB347" },
+                          { year: "2014", label: "Tao averaged blow-up", color: "#FFB347" },
+                          { year: "2021", label: "Euler Turing-complete", color: "#B464FF" },
+                          { year: "?", label: "N-S blow-up / regularity", color: "#00E5FF" },
+                        ].map((e, i) => (
+                          <div key={i} className="flex-1 border-l border-white/10 pl-2 py-1">
+                            <p style={{ color: e.color }}>{e.year}</p>
+                            <p className="text-white/30 leading-tight">{e.label}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
 
