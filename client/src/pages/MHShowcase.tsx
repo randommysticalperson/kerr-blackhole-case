@@ -564,6 +564,198 @@ export default function MHShowcase() {
         </div>
       </section>
 
+      {/* ── Yang–Mills & 4-Manifolds ── */}
+      <section className="px-8 md:px-16 py-20 border-t border-white/10">
+        <div className="max-w-6xl mx-auto">
+
+          {/* Section header */}
+          <div className="mb-12">
+            <p className="text-white/30 text-xs tracking-widest uppercase mb-2">Millennium Problem II</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              Yang–Mills Existence &amp; Mass Gap
+            </h2>
+            <p className="text-white/50 text-sm max-w-2xl leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              One of the seven Clay Millennium Prize Problems ($1,000,000 prize, status: open). The problem asks for a rigorous
+              mathematical construction of quantum Yang–Mills theory in four dimensions — the gauge theory underlying the Standard Model —
+              and a proof that it has a positive mass gap. Its solution would resolve the mathematical foundations of QCD
+              and, through Donaldson theory, illuminate the exotic smooth structure of 4-manifolds.
+            </p>
+          </div>
+
+          {/* Three-column grid */}
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
+
+            {/* Card 1: The Millennium Problem */}
+            <div className="border border-white/10 bg-white/[0.02] p-6 space-y-4">
+              <div className="flex items-start justify-between">
+                <p className="text-cyan-400 text-xs tracking-widest uppercase">The Problem</p>
+                <span className="text-[10px] font-mono text-white/20 border border-white/10 px-2 py-0.5">Clay MPI</span>
+              </div>
+              <h3 className="text-white text-lg font-bold leading-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                Quantum Yang–Mills Theory on ℝ⁴
+              </h3>
+              <p className="text-white/60 text-xs leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                Prove that for any compact simple gauge group <em>G</em>, a non-trivial quantum Yang–Mills theory exists on ℝ⁴
+                and has a <strong className="text-white">mass gap Δ &gt; 0</strong> — meaning every excitation of the vacuum has energy at least Δ.
+              </p>
+              <div className="border border-cyan-400/20 bg-cyan-400/5 p-3 space-y-1">
+                <p className="text-cyan-400 text-[10px] font-mono uppercase tracking-widest">Three Required Properties</p>
+                <p className="text-white/50 text-[10px] leading-relaxed">
+                  1. <strong className="text-white/80">Mass gap:</strong> ∃ Δ &gt; 0 s.t. every excitation has energy ≥ Δ<br />
+                  2. <strong className="text-white/80">Quark confinement:</strong> physical states are SU(3)-invariant<br />
+                  3. <strong className="text-white/80">Chiral symmetry breaking:</strong> vacuum breaks chiral symmetry
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-white/40 text-[10px] font-mono">Problem Statement</p>
+                <p className="text-white/70 text-[10px] font-mono">Jaffe, A. &amp; Witten, E.</p>
+                <a href="https://www.claymath.org/millennium/yang-mills-the-maths/" target="_blank" rel="noopener noreferrer"
+                  className="text-cyan-400/60 hover:text-cyan-300 transition-colors text-[10px] font-mono block">claymath.org/millennium/yang-mills</a>
+                <p className="text-white/30 text-[10px] font-mono">Clay Mathematics Institute, 2000</p>
+              </div>
+              <div className="flex gap-4">
+                <div className="text-center">
+                  <p className="text-cyan-400 text-base font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>$1M</p>
+                  <p className="text-white/30 text-[10px] tracking-widest uppercase">Prize</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-cyan-400 text-base font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Open</p>
+                  <p className="text-white/30 text-[10px] tracking-widest uppercase">Status</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-cyan-400 text-base font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>SU(N)</p>
+                  <p className="text-white/30 text-[10px] tracking-widest uppercase">Gauge Group</p>
+                </div>
+              </div>
+              {/* Lagrangian display */}
+              <div className="border-t border-white/10 pt-3">
+                <p className="text-white/30 text-[10px] font-mono uppercase tracking-widest mb-1">Yang–Mills Lagrangian</p>
+                <p className="text-white/70 text-xs font-mono">L = (1/4g²) ∫ Tr F ∧ ⋆F</p>
+                <p className="text-white/30 text-[10px] font-mono mt-0.5">F = dA + A ∧ A  (curvature of connection A)</p>
+                <p className="text-white/30 text-[10px] font-mono">Classical waves: massless. Quantum: must be massive.</p>
+              </div>
+            </div>
+
+            {/* Card 2: Donaldson Theory */}
+            <div className="border border-white/10 bg-white/[0.02] p-6 space-y-4">
+              <div className="flex items-start justify-between">
+                <p className="text-violet-400 text-xs tracking-widest uppercase">Donaldson Theory</p>
+                <span className="text-[10px] font-mono text-white/20 border border-white/10 px-2 py-0.5">Fields Medal 1986</span>
+              </div>
+              <h3 className="text-white text-lg font-bold leading-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                Instantons &amp; 4-Manifold Invariants
+              </h3>
+              <p className="text-white/60 text-xs leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                Yang–Mills instantons — solutions to the <strong className="text-white">anti-self-dual equations F⁺ = 0</strong> on a
+                Riemannian 4-manifold — form a moduli space whose geometry encodes smooth structure information
+                invisible to algebraic topology.
+              </p>
+              <p className="text-white/50 text-xs leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                Donaldson proved: if a simply-connected smooth 4-manifold has a <em>definite</em> intersection form,
+                it must be diagonalizable over ℤ. Combined with Freedman's topological classification, this yields
+                the existence of <strong className="text-white">exotic ℝ⁴</strong> — a smooth manifold homeomorphic but not diffeomorphic to ℝ⁴.
+                Dimension 4 is the <em>only</em> dimension where this occurs.
+              </p>
+              <div className="border border-violet-400/20 bg-violet-400/5 p-3">
+                <p className="text-violet-400 text-[10px] font-mono uppercase tracking-widest mb-1">Why Dimension 4 is Special</p>
+                <p className="text-white/50 text-[10px] leading-relaxed">
+                  The Hodge star ⋆ maps 2-forms to 2-forms <em>only</em> in 4D, enabling the self-dual / anti-self-dual
+                  decomposition Ω² = Ω²₊ ⊕ Ω²₋. The Yang–Mills functional ∫|F|² is also conformally invariant in 4D
+                  (scaling dimension = 0). Both facts are essential to instanton theory.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-white/40 text-[10px] font-mono">Primary Reference</p>
+                <p className="text-white/70 text-[10px] font-mono">Donaldson, S. K. (1983)</p>
+                <p className="text-white/50 text-[10px] font-mono">An application of gauge theory to four-dimensional topology</p>
+                <p className="text-white/30 text-[10px] font-mono"><em>J. Differential Geom.</em> 18(2), 279–315</p>
+                <a href="https://doi.org/10.4310/jdg/1214437665" target="_blank" rel="noopener noreferrer"
+                  className="text-violet-400/60 hover:text-violet-300 transition-colors text-[10px] font-mono block">doi:10.4310/jdg/1214437665</a>
+              </div>
+              <div className="flex gap-4">
+                <div className="text-center">
+                  <p className="text-violet-400 text-base font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>∞</p>
+                  <p className="text-white/30 text-[10px] tracking-widest uppercase">Exotic ℝ⁴</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-violet-400 text-base font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>4D</p>
+                  <p className="text-white/30 text-[10px] tracking-widest uppercase">Only Dim.</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-violet-400 text-base font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>F⁺=0</p>
+                  <p className="text-white/30 text-[10px] tracking-widest uppercase">Instanton Eq.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Seiberg-Witten & Exotic R4 */}
+            <div className="border border-white/10 bg-white/[0.02] p-6 space-y-4">
+              <div className="flex items-start justify-between">
+                <p className="text-amber-400 text-xs tracking-widest uppercase">Seiberg–Witten Theory</p>
+                <span className="text-[10px] font-mono text-white/20 border border-white/10 px-2 py-0.5">1994</span>
+              </div>
+              <h3 className="text-white text-lg font-bold leading-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                Monopole Equations &amp; Exotic Smooth Structures
+              </h3>
+              <p className="text-white/60 text-xs leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                Seiberg and Witten introduced a new set of equations — the <strong className="text-white">SW monopole equations</strong> —
+                whose moduli space gives 4-manifold invariants far simpler to compute than Donaldson's, yet equivalent
+                for symplectic 4-manifolds (Witten 1994).
+              </p>
+              <p className="text-white/50 text-xs leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                Witten's 1988 paper showed Donaldson invariants arise as correlation functions in a
+                <strong className="text-white"> twisted N=2 supersymmetric Yang–Mills theory</strong> — the first example of a
+                Topological Quantum Field Theory (TQFT). This established a deep bridge between
+                physics (supersymmetric gauge theory) and pure mathematics (smooth 4-manifold topology).
+              </p>
+              <div className="border border-amber-400/20 bg-amber-400/5 p-3">
+                <p className="text-amber-400 text-[10px] font-mono uppercase tracking-widest mb-1">Uncountably Many Exotic ℝ⁴</p>
+                <p className="text-white/50 text-[10px] leading-relaxed">
+                  In every dimension n ≠ 4, ℝⁿ has a <em>unique</em> smooth structure. In dimension 4,
+                  there are <strong className="text-white">uncountably many</strong> mutually non-diffeomorphic smooth structures on ℝ⁴
+                  (Gompf 1985). This is a purely 4-dimensional phenomenon with no analogue in any other dimension.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div>
+                  <p className="text-white/40 text-[10px] font-mono">Primary Reference</p>
+                  <p className="text-white/70 text-[10px] font-mono">Seiberg, N. &amp; Witten, E. (1994)</p>
+                  <p className="text-white/50 text-[10px] font-mono">Electric-magnetic duality, monopole condensation, and confinement in N=2 supersymmetric Yang-Mills theory</p>
+                  <p className="text-white/30 text-[10px] font-mono"><em>Nucl. Phys. B</em> 426(1), 19–52</p>
+                  <a href="https://doi.org/10.1016/0550-3213(94)90124-4" target="_blank" rel="noopener noreferrer"
+                    className="text-amber-400/60 hover:text-amber-300 transition-colors text-[10px] font-mono block">doi:10.1016/0550-3213(94)90124-4</a>
+                  <a href="https://arxiv.org/abs/hep-th/9407190" target="_blank" rel="noopener noreferrer"
+                    className="text-amber-400/40 hover:text-amber-300 transition-colors text-[10px] font-mono block">arXiv:hep-th/9407190</a>
+                </div>
+                <div>
+                  <p className="text-white/40 text-[10px] font-mono">TQFT Reference</p>
+                  <p className="text-white/70 text-[10px] font-mono">Witten, E. (1988)</p>
+                  <p className="text-white/50 text-[10px] font-mono">Topological quantum field theory</p>
+                  <p className="text-white/30 text-[10px] font-mono"><em>Commun. Math. Phys.</em> 117(3), 353–386</p>
+                  <a href="https://doi.org/10.1007/BF01223371" target="_blank" rel="noopener noreferrer"
+                    className="text-amber-400/60 hover:text-amber-300 transition-colors text-[10px] font-mono block">doi:10.1007/BF01223371</a>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Connection callout */}
+          <div className="border-l-4 pl-6 py-2" style={{ borderColor: "#00E5FF" }}>
+            <p className="text-cyan-400 text-xs tracking-widest uppercase mb-2">Connection to M-H Spacetime &amp; Undecidability</p>
+            <p className="text-white/60 text-sm leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              The Yang–Mills mass gap problem sits at the intersection of physics and mathematics in the same way M-H spacetime does:
+              both ask whether a physically motivated construction — a quantum gauge theory, a hypercomputer — can be given rigorous
+              mathematical existence. Donaldson's use of Yang–Mills instantons to distinguish smooth 4-manifolds demonstrates that
+              the <em>equations of physics</em> can resolve questions that <em>algebraic topology alone cannot</em> — a theme
+              directly parallel to the M-H claim that <em>general relativity</em> can resolve questions that <em>Turing machines cannot</em>.
+              In both cases, the geometry of spacetime is doing computational work.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
       {/* ── References / CTA ── */}
       <section className="px-8 md:px-16 py-16 border-t border-white/10">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
