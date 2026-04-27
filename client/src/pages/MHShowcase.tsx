@@ -324,6 +324,160 @@ export default function MHShowcase() {
         </div>
       </section>
 
+      {/* ── Undecidable Problems in Physics ── */}
+      <section className="px-8 md:px-16 py-16 border-t border-white/10">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-white/40 text-xs tracking-widest uppercase mb-2">Broader Context</p>
+          <h2 className="text-3xl font-black mb-3" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            Undecidable Problems in Physics
+          </h2>
+          <p className="text-white/50 text-sm leading-relaxed mb-10 max-w-3xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            M-H spacetimes are one entry in a growing catalogue of physical systems whose behaviour is provably undecidable —
+            meaning no algorithm can determine the answer in general, regardless of computational resources.
+            Each result below reduces a known undecidable mathematical problem (Halting Problem, tiling, etc.) to a question about a physical system.
+          </p>
+          <div className="space-y-6">
+
+            {/* Problem 1 — Spectral Gap */}
+            <div className="border border-white/10 bg-white/[0.02] p-6 grid md:grid-cols-[1fr_2fr] gap-6">
+              <div>
+                <p className="text-[10px] tracking-widest uppercase mb-2" style={{ color: "#00E5FF" }}>Quantum Many-Body Physics</p>
+                <h3 className="text-white text-lg font-black mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  Spectral Gap Problem
+                </h3>
+                <p className="text-white/40 text-xs font-mono">Cubitt, Perez-Garcia & Wolf (2015)</p>
+                <a href="https://doi.org/10.1038/nature16059" target="_blank" rel="noopener noreferrer"
+                  className="text-cyan-400/60 hover:text-cyan-300 transition-colors text-xs font-mono block mt-1">doi:10.1038/nature16059</a>
+                <p className="text-white/30 text-xs mt-2 font-mono">Nature 528, 207–211</p>
+                <p className="text-white/30 text-xs font-mono">arXiv:1502.04135</p>
+              </div>
+              <div className="space-y-3">
+                <p className="text-white/70 text-sm leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  Given the Hamiltonian of a quantum many-body system on a 2D lattice with translationally invariant nearest-neighbour interactions,
+                  it is <strong className="text-white">undecidable</strong> whether the system has a <em>spectral gap</em> — the energy difference between
+                  the ground state and first excited state.
+                </p>
+                <p className="text-white/50 text-xs leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  The proof encodes a quantum phase-estimation algorithm followed by a universal Turing machine into the ground state of a Hamiltonian,
+                  so the spectral gap depends on whether the Turing machine halts. This implies there exist models for which the presence or absence
+                  of a spectral gap is <em>independent of the axioms of mathematics</em> — a result with direct implications for the Yang–Mills gap
+                  conjecture and the Haldane conjecture.
+                </p>
+                <div className="flex gap-4 mt-2">
+                  <div className="text-center">
+                    <p className="text-cyan-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>220</p>
+                    <p className="text-white/30 text-[10px] tracking-widest uppercase">Citations</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-cyan-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>2015</p>
+                    <p className="text-white/30 text-[10px] tracking-widest uppercase">Nature</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-cyan-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>2D</p>
+                    <p className="text-white/30 text-[10px] tracking-widest uppercase">Lattice</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Problem 2 — Ray Tracing */}
+            <div className="border border-white/10 bg-white/[0.02] p-6 grid md:grid-cols-[1fr_2fr] gap-6">
+              <div>
+                <p className="text-[10px] tracking-widest uppercase mb-2" style={{ color: "#FFB347" }}>Optics / Computational Geometry</p>
+                <h3 className="text-white text-lg font-black mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  Ray Tracing Problem
+                </h3>
+                <p className="text-white/40 text-xs font-mono">Reif, Tygar & Yoshida (1994)</p>
+                <a href="https://doi.org/10.1007/BF01200497" target="_blank" rel="noopener noreferrer"
+                  className="text-amber-400/60 hover:text-amber-300 transition-colors text-xs font-mono block mt-1">doi:10.1007/BF01200497</a>
+                <p className="text-white/30 text-xs mt-2 font-mono">Comput. Geom. 1(1), 1–14</p>
+                <a href="https://users.cs.duke.edu/~reif/paper/tygar/raytracing.pdf" target="_blank" rel="noopener noreferrer"
+                  className="text-amber-400/40 hover:text-amber-300 transition-colors text-xs font-mono block mt-1">PDF (Duke CS)</a>
+              </div>
+              <div className="space-y-3">
+                <p className="text-white/70 text-sm leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  In a 3-dimensional system of reflective or refractive objects, it is <strong className="text-white">undecidable</strong> whether
+                  a light ray beginning at a given position and direction eventually reaches a specified target point.
+                </p>
+                <p className="text-white/50 text-xs leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  The proof constructs a system of mirrors that simulates a Turing machine: each reflection corresponds to a computational step,
+                  and the ray reaches the target if and only if the machine halts. This is directly relevant to the Kerr black hole ray tracer
+                  in this project — in principle, a sufficiently complex optical system could encode undecidable computations into photon paths.
+                </p>
+                <div className="flex gap-4 mt-2">
+                  <div className="text-center">
+                    <p className="text-amber-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>3D</p>
+                    <p className="text-white/30 text-[10px] tracking-widest uppercase">System</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-amber-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>1994</p>
+                    <p className="text-white/30 text-[10px] tracking-widest uppercase">Comput. Geom.</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-amber-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>PSPACE</p>
+                    <p className="text-white/30 text-[10px] tracking-widest uppercase">Hard (finite)</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Problem 3 — Fluid Particle Paths */}
+            <div className="border border-white/10 bg-white/[0.02] p-6 grid md:grid-cols-[1fr_2fr] gap-6">
+              <div>
+                <p className="text-[10px] tracking-widest uppercase mb-2" style={{ color: "#B464FF" }}>Fluid Dynamics / Topology</p>
+                <h3 className="text-white text-lg font-black mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  Euler Flow Reachability
+                </h3>
+                <p className="text-white/40 text-xs font-mono">Cardona, Miranda, Peralta-Salas & Presas (2021)</p>
+                <a href="https://doi.org/10.1073/pnas.2026818118" target="_blank" rel="noopener noreferrer"
+                  className="text-violet-400/60 hover:text-violet-300 transition-colors text-xs font-mono block mt-1">doi:10.1073/pnas.2026818118</a>
+                <p className="text-white/30 text-xs mt-2 font-mono">PNAS 118(19), e2026818118</p>
+                <a href="https://arxiv.org/abs/2012.12828" target="_blank" rel="noopener noreferrer"
+                  className="text-violet-400/40 hover:text-violet-300 transition-colors text-xs font-mono block mt-1">arXiv:2012.12828</a>
+              </div>
+              <div className="space-y-3">
+                <p className="text-white/70 text-sm leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  It is <strong className="text-white">undecidable</strong> whether a particle path of an ideal (Euler) fluid on a 3D domain
+                  eventually reaches a specified region in space.
+                </p>
+                <p className="text-white/50 text-xs leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  The authors construct a stationary Euler flow on a Riemannian S³ that is Turing complete: its particle trajectories simulate
+                  any Turing machine via a Poincaré map on a cross-section. The reachability question for a particle is therefore equivalent
+                  to the Halting Problem. The proof fuses symbolic dynamics, contact topology (Reeb fields), and the Reeb–Beltrami correspondence.
+                  A companion paper (Cardona et al., <em>J. Math. Pures Appl.</em> 169, 2023) extends the result to Euclidean space.
+                </p>
+                <div className="flex gap-4 mt-2">
+                  <div className="text-center">
+                    <p className="text-violet-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>2021</p>
+                    <p className="text-white/30 text-[10px] tracking-widest uppercase">PNAS</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-violet-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>S³</p>
+                    <p className="text-white/30 text-[10px] tracking-widest uppercase">Domain</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-violet-400 text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Euler</p>
+                    <p className="text-white/30 text-[10px] tracking-widest uppercase">Equations</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Connection to M-H */}
+          <div className="mt-8 border-l-4 pl-6" style={{ borderColor: "#B464FF" }}>
+            <p className="text-violet-400 text-xs tracking-widest uppercase mb-2">Connection to M-H Hypercomputation</p>
+            <p className="text-white/60 text-sm leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              Each of these results demonstrates that a physical system can encode the Halting Problem — but none of them <em>solves</em> it.
+              The Malament–Hogarth spacetime goes further: it provides a physical mechanism by which an observer could <em>receive the answer</em>
+              to an undecidable computation in finite proper time. Whether mass inflation at the Cauchy horizon physically prevents this
+              remains the central open question connecting general relativity, quantum gravity, and the theory of computation.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ── References / CTA ── */}
       <section className="px-8 md:px-16 py-16 border-t border-white/10">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
