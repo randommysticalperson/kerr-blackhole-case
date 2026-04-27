@@ -195,6 +195,7 @@ export default function Home() {
           <a href="#features" className="hover:text-cyan-400/70 transition-colors">Features</a>
           <a href="#rendering" className="hover:text-cyan-400/70 transition-colors">Rendering</a>
           <a href="#source" className="hover:text-cyan-400/70 transition-colors">Source</a>
+          <a href="/mh" className="hover:text-violet-400/70 transition-colors" style={{color:"rgba(180,100,255,0.6)"}}>M-H Spacetime</a>
         </div>
         <a
           href="https://github.com/randommysticalperson/kerr-blackhole-webgpu"
